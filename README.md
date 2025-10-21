@@ -1,1 +1,1 @@
-# SmartR
+# smartr
