@@ -1,93 +1,88 @@
-import { defaultConfig, SmartRConfig } from "./defaultConfig";
+// configManager.ts - Optimized for NPM package
+import {
+  defaultConfig,
+  SmartRConfig,
+  PartialSmartRConfig,
+} from "./defaultConfig";
 
 export class ConfigManager {
   private config: SmartRConfig = { ...defaultConfig };
-  private isInitialized = false;
+  private hasUserConfig = false;
 
-  // Método principal - funciona das duas formas
-  setConfig(userConfig: Partial<SmartRConfig>): void {
-    this.config = this.deepMerge(this.config, userConfig);
-    this.isInitialized = true;
+  /**
+   * Set user configuration - merges with defaults
+   */
+  setConfig(userConfig: PartialSmartRConfig): void {
+    this.config = this.deepMerge(this.config, userConfig as any);
+    this.hasUserConfig = true;
   }
 
-  // Para auto-load no projeto atual (opcional)
-  initialize(): void {
-    if (this.isInitialized) return;
-
-    // Só tenta auto-load no projeto atual (não como pacote)
-    if (this.isCurrentProject()) {
-      this.tryAutoLoad();
-    }
-  }
-
+  /**
+   * Get current configuration
+   */
   getConfig(): SmartRConfig {
-    if (!this.isInitialized) {
-      this.initialize();
+    // Try to load global config if no user config was set
+    if (!this.hasUserConfig) {
+      this.tryLoadGlobalConfig();
     }
     return this.config;
   }
 
-  private isCurrentProject(): boolean {
-    // Verifica se estamos no projeto original (não como pacote npm)
-    // Isso é uma heurística simples - você pode ajustar
-    return (
-      typeof window !== "undefined" &&
-      !window.location.pathname.includes("node_modules")
-    );
+  /**
+   * Reset to default configuration
+   */
+  resetConfig(): void {
+    this.config = { ...defaultConfig };
+    this.hasUserConfig = false;
   }
 
-  private tryAutoLoad(): void {
+  /**
+   * Try to load configuration from global window object
+   */
+  private tryLoadGlobalConfig(): void {
     try {
-      // Tenta carregar do window (configuração global)
       if (typeof window !== "undefined" && (window as any).SmartRConfig) {
         this.setConfig((window as any).SmartRConfig);
-        return;
-      }
-
-      // Tenta carregar via require (apenas em desenvolvimento)
-      if (typeof require !== "undefined") {
-        try {
-          // @ts-ignore
-          const userConfig = require("../../smartR.config.json");
-          this.setConfig(userConfig.default || userConfig);
-          return;
-        } catch (e) {
-          // Arquivo não existe - ignora
-        }
       }
     } catch (error) {
-      console.warn("[SmartR] Auto-load falhou, usando padrão");
+      console.warn("[SmartR] Failed to load global config, using defaults");
     }
   }
 
-  private deepMerge<T>(base: T, patch: Partial<T>): T {
+  /**
+   * Deep merge objects and arrays - updated to handle DeepPartial
+   */
+  private deepMerge<T>(base: T, patch: any): T {
     if (!patch || typeof patch !== "object") return base;
-    const out: any = Array.isArray(base)
+
+    const result: any = Array.isArray(base)
       ? [...((patch as any) ?? base)]
       : { ...base };
 
-    for (const [k, v] of Object.entries(patch)) {
-      const b: any = (base as any)[k];
+    for (const [key, value] of Object.entries(patch)) {
+      const baseValue = (base as any)[key];
+
       if (
-        v &&
-        typeof v === "object" &&
-        !Array.isArray(v) &&
-        b &&
-        typeof b === "object" &&
-        !Array.isArray(b)
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        baseValue &&
+        typeof baseValue === "object" &&
+        !Array.isArray(baseValue)
       ) {
-        out[k] = this.deepMerge(b, v as any);
-      } else {
-        out[k] = v;
+        result[key] = this.deepMerge(baseValue, value);
+      } else if (value !== undefined) {
+        result[key] = value;
       }
     }
-    return out;
+
+    return result;
   }
 }
 
-// Instância global
+// Global instance
 export const configManager = new ConfigManager();
 
-// Export para compatibilidade (funciona agora)
+// Export for compatibility
 export const configSmartR = configManager.getConfig();
-export type { SmartRConfig };
+export type { SmartRConfig, PartialSmartRConfig };

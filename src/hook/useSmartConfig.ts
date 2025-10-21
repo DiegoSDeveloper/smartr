@@ -1,11 +1,8 @@
-import { useEffect } from "react";
+// useSmartConfig.ts
 import { configManager } from "../config/configManager";
 
 export const useSmartConfig = () => {
-  // Inicializa uma vez quando o hook é usado
-  useEffect(() => {
-    configManager.initialize();
-  }, []);
-
+  // Remove useEffect since configManager no longer has initialize()
+  // Config is loaded automatically on first access
   return configManager.getConfig();
 };

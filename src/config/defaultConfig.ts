@@ -1,6 +1,7 @@
+// defaultConfig.ts - Clean version for NPM package
 export const defaultConfig = {
   hasInputGroup: true,
-  translateToken: "GomeliusDev",
+  translateToken: "SmartRTranslationKey",
   translateText: false,
   columnTag: "div",
   invalidFeedbackTag: "div",
@@ -10,9 +11,9 @@ export const defaultConfig = {
   prependIconAfterInput: true,
   showPasswordIcon: true,
   optionsId: "id",
-  optionsDescription: "descricao",
+  optionsDescription: "description",
   optionsToolTip: "tooltip",
-  optionsGroup: "grupo",
+  optionsGroup: "group",
   optionsNoneSelectedValue: "",
   optionsFirstSelected: false,
   optionsNoneSelectedText: "None selected",
@@ -20,8 +21,8 @@ export const defaultConfig = {
   thousandsSeparator: ".",
   decimalSeparator: ",",
   decimalPlaces: 2,
-  phoneMask: "(00) 00000-0000",
-  phonePlaceholder: "(00) 00000-0000",
+  phoneMask: "(000) 000-0000",
+  phonePlaceholder: "(000) 000-0000",
   optionsLimiteDescriptionSelected: 3,
   optionsMultipleSeparatorValue: ",",
   optionsMultipleSeparatorDescription: ", ",
@@ -29,14 +30,12 @@ export const defaultConfig = {
   maxFiles: 10,
   maxFilesPlaceholder: 5,
   maxFileSize: 300,
-  // maxFileSize: 52428800,
   table: {
     timeZone: "UTC",
     culture: "en-US",
     sourceValueProperty: "id",
     sourceDescriptionProperty: "description",
     sourceBadgeProperty: "badge",
-
     pageSize: 10,
     pageSizes: [10, 25, 50, 100],
   },
@@ -173,16 +172,13 @@ export const defaultConfig = {
     maxCharacter: "Please enter at most 1 character",
     maxCharacters: "Please enter at most %s1 characters",
     minMaxCharacters: "This value must be between %s1 and %s2 characters long",
-
     minNumber: "The value must be greater than or equal to %s1",
     maxNumber: "The value must be less than or equal to %s1",
     minMaxNumber: "This number must be between %s1 and %s2",
-
     email: "Please enter a valid email address",
     required: "This field is required",
     date: "Please enter a valid date",
     number: "Please enter a valid number",
-
     totalFilesAllowedExceeded: "Select at most %s1 files",
     fileSizeExceededMaxAllowed:
       "File %s1 exceeds the maximum allowed size of %s2",
@@ -197,63 +193,9 @@ export const defaultConfig = {
 
 export type SmartRConfig = typeof defaultConfig;
 
-// DEBUG
-const DEBUG_SMARTR = false;
-const log = (...a: any[]) => DEBUG_SMARTR && console.log("[SmartR]", ...a);
-const safe = (o: any) => {
-  try {
-    return JSON.stringify(o, null, 2);
-  } catch {
-    return String(o);
-  }
+// Deep partial type for nested configuration objects
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-// deep merge (objetos; arrays substituem)
-function deepMerge<T>(base: T, patch: Partial<T>): T {
-  if (!patch || typeof patch !== "object") return base;
-  const out: any = Array.isArray(base)
-    ? [...((patch as any) ?? base)]
-    : { ...base };
-  for (const [k, v] of Object.entries(patch)) {
-    const b: any = (base as any)[k];
-    if (
-      v &&
-      typeof v === "object" &&
-      !Array.isArray(v) &&
-      b &&
-      typeof b === "object" &&
-      !Array.isArray(b)
-    ) {
-      out[k] = deepMerge(b, v as any);
-    } else {
-      out[k] = v;
-    }
-  }
-  return out;
-}
-
-// === 3) Override GLOBAL opcional em src/smartR.config.json ===
-let globalOverride: Partial<SmartRConfig> | null = null;
-
-try {
-  // IMPORTANTE: caminho relativo ao arquivo atual (src/SmartR/configSmartR.ts) para a raiz de src/
-  // Se você mover este arquivo para outro lugar, ajuste "../"
-  // @ts-ignore - webpack/babel vai resolver JSON
-  const mod = require("../smartR.config.json");
-  globalOverride = (mod?.default ?? mod) as Partial<SmartRConfig>;
-  log("override carregado de ../smartR.config.json");
-  log("override (preview):", safe(globalOverride));
-} catch (e: any) {
-  log(
-    "nenhum override encontrado em ../smartR.config.json (usando defaults).",
-    e?.message ?? e
-  );
-}
-
-// === 4) Config final ===
-export const configSmartR: SmartRConfig = globalOverride
-  ? deepMerge(defaultConfig, globalOverride)
-  : defaultConfig;
-
-log("globalOverride aplicado?", !!globalOverride);
-if (globalOverride) log("config final (preview):", safe(configSmartR));
+export type PartialSmartRConfig = DeepPartial<SmartRConfig>;

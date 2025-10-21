@@ -17,7 +17,6 @@ import { ValidationResult } from "../ValidationResult";
 
 import { configManager } from "../config/configManager";
 
-const config = configManager.getConfig();
 type ClassValue = string | number | boolean | undefined | null;
 type ClassDictionary = Record<string, any>;
 type ClassArray = ClassValue[];
@@ -119,6 +118,7 @@ export function getDefaultHasIcon(type: Input) {
 }
 
 export function getDefaultIconPosition(type: Input): IconPosition {
+  const config = configManager.getConfig();
   switch (type) {
     case Input.Mobile:
       return config.icons.mobilePositionStart
@@ -169,6 +169,7 @@ export function getDefaultIconPosition(type: Input): IconPosition {
 }
 
 export function getDefaultIcon(type: Input) {
+  const config = configManager.getConfig();
   switch (type) {
     case Input.Mobile:
       return config.icons.mobile;
@@ -323,6 +324,7 @@ export function getEditorAttributes(
   editorValue: any,
   showPassword: boolean
 ): Record<string, any> {
+  const config = configManager.getConfig();
   const {
     type = Input.Text,
     className,
@@ -613,8 +615,8 @@ export function removeMask(
   type: Input,
   editorMask: string,
   maskedValue,
-  thousandsSeparator: string = config.thousandsSeparator,
-  decimalSeparator: string = config.decimalSeparator
+  thousandsSeparator: string,
+  decimalSeparator: string
 ) {
   if (
     !editorMask &&
@@ -669,9 +671,9 @@ export function applyMask(
   type: Input,
   editorMask: string,
   input: any,
-  thousandsSeparator: string = config.thousandsSeparator,
-  decimalSeparator: string = config.decimalSeparator,
-  decimalPlaces: number = config.decimalPlaces
+  thousandsSeparator: string,
+  decimalSeparator: string,
+  decimalPlaces: number
 ) {
   if (
     !input ||
@@ -778,6 +780,7 @@ export function validateEditorInputValue(
   props: EditorPropType,
   editorMask?: string
 ) {
+  const config = configManager.getConfig();
   const {
     type = Input.Text,
     id,
