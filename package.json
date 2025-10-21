@@ -1,5 +1,5 @@
 {
-  "name": "@diegodeveloper/smartr",
+  "name": "smartr",
   "version": "1.0.0",
   "description": "A comprehensive React components library with form controls, UI elements, and layout components",
   "main": "dist/index.js",
