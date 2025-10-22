@@ -1,6 +1,6 @@
 {
   "name": "smartr-ui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A comprehensive React components library with form controls, UI elements, and layout components",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -34,11 +34,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DiegoSDeveloper/smartr"
+    "url": "https://github.com/DiegoSDeveloper/smartr-ui"
   },
-  "homepage": "https://github.com/DiegoSDeveloper/smartr#readme",
+  "homepage": "https://github.com/DiegoSDeveloper/smartr-ui#readme",
   "bugs": {
-    "url": "https://github.com/DiegoSDeveloper/smartr/issues"
+    "url": "https://github.com/DiegoSDeveloper/smartr-ui/issues"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

@@ -1,5 +1,6 @@
+import { ScreenSize } from "../types";
 import { timeZoneMap } from "./timezone";
-import { AlignType, ColumnType, TableColumnProps, ScreenSize } from "./types";
+import { AlignType, ColumnType, TableColumnProps } from "./types";
 
 export const Util = {
   timeZoneMap: {
@@ -193,17 +194,17 @@ export const Util = {
     const windowWidth = window.innerWidth;
 
     if (windowWidth < 576) {
-      return "xs";
+      return ScreenSize.XS;
     } else if (windowWidth < 768) {
-      return "sm";
+      return ScreenSize.SM;
     } else if (windowWidth < 992) {
-      return "md";
+      return ScreenSize.MD;
     } else if (windowWidth < 1200) {
-      return "lg";
+      return ScreenSize.LG;
     } else if (windowWidth < 1400) {
-      return "xl";
+      return ScreenSize.XL;
     } else {
-      return "xxl";
+      return ScreenSize.XXL;
     }
   },
   mapToCssModules: function (className = "") {

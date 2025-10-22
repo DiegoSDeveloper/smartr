@@ -1,3 +1,5 @@
+import { ScreenSize } from "../types";
+
 export type TableColumnProps = {
   header?: string;
   accessor?: string;
@@ -36,6 +38,7 @@ export type TableColumnProps = {
     rowData: any
   ) => void;
 };
+
 export interface TableRef {
   getSelectedRows: () => any[];
   selectRow: (rowIndex: number) => void;
@@ -44,14 +47,71 @@ export interface TableRef {
   deselectAll: () => void;
   exportData: (format: "csv" | "excel" | "pdf") => void;
 }
-export interface TablePaginationProps {
-  // Controle de paginação
+
+// ============================================================================
+// INTERFACE FOR TablePagination COMPONENT (used in TablePagination.tsx)
+// ============================================================================
+export interface TablePaginationComponentProps {
+  // Basic pagination control
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+
+  // States
+  loading?: boolean;
+
+  // Text customizations
+  customTexts?: {
+    showing?: string;
+    to?: string;
+    of?: string;
+    records?: string;
+    firstPage?: string;
+    previousPage?: string;
+    nextPage?: string;
+    lastPage?: string;
+    page?: string;
+  };
+
+  // CSS classes customizations
+  customClasses?: {
+    container?: string;
+    info?: string;
+    controls?: string;
+    pagination?: string;
+    pageItem?: string;
+    pageLink?: string;
+    pageInfo?: string;
+    activePage?: string;
+    disabledPage?: string;
+  };
+
+  // Icon customizations
+  customIcons?: {
+    firstPage?: string;
+    previousPage?: string;
+    nextPage?: string;
+    lastPage?: string;
+  };
+}
+
+// ============================================================================
+// INTERFACE FOR TABLE PAGINATION CONFIG (used in TableProps)
+// ============================================================================
+export interface TablePaginationConfigProps {
+  // Pagination display control
+  showPagination?: boolean;
+  paginationPosition?: "top" | "bottom" | "both";
+
+  // Pagination configuration
   totalRecords?: number;
   currentPage?: number;
   pageSize?: number;
   totalPages?: number;
-  showPagination?: boolean;
-  paginationPosition?: "top" | "bottom" | "both";
+
+  // Custom rendering
   customPaginationRender?: (paginationInfo: {
     currentPage: number;
     totalPages: number;
@@ -61,13 +121,13 @@ export interface TablePaginationProps {
     loading?: boolean;
   }) => React.ReactNode;
 
-  // Callbacks de paginação
+  // Callbacks
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
 }
 
 export interface TableDataManagementProps {
-  // Gerenciamento automático de dados
+  // Automatic data management
   enableDataManagement?: boolean;
   onFetchData?: (params: {
     page: number;
@@ -81,27 +141,28 @@ export interface TableDataManagementProps {
     totalPages?: number;
   }>;
 
-  // Estados de loading
+  // Loading states
   loading?: boolean;
   loadingText?: string;
 
-  // Configurações de auto-carregamento
+  // Auto-load settings
   autoLoad?: boolean;
   debounceTime?: number;
 }
 
-export interface TableProps
-  extends TablePaginationProps,
-    TableDataManagementProps {
-  // Colunas e estrutura
+export interface TableProps extends TableDataManagementProps {
+  // Columns and structure
   columns: TableColumnProps[];
   columnsDetail?: TableColumnProps[];
 
-  // Dados
+  // Data
   data?: any[];
   dataDetailProperty?: string;
 
-  // Exibição e comportamento
+  // Pagination configuration
+  pagination?: TablePaginationConfigProps;
+
+  // Display and behavior
   showHeader?: boolean;
   showDetailHeader?: boolean;
   enableHoverEffect?: boolean;
@@ -111,29 +172,29 @@ export interface TableProps
   viewMode?: TableViewMode;
   cardViewModeBelow?: ScreenSize;
 
-  // Seleção
+  // Selection
   selection?: SelectionType;
   enableSelectAll?: boolean;
 
-  // Estilização
+  // Styling
   className?: any;
   classNameDetail?: any;
   rowClassName?: string | ((record: any) => string);
   rowDetailClassName?: string | ((detail: any, parent: any) => string);
 
-  // Localização e formatação
+  // Localization and formatting
   timeZone?: string;
   culture?: string;
 
-  // Mensagens
+  // Messages
   noRecordMessage?: string;
 
-  // Ícones de ordenação
+  // Sorting icons
   sortAscendingIcon?: string;
   sortDescendingIcon?: string;
   sortDefaultIcon?: string;
 
-  // Renderização customizada
+  // Custom rendering
   rowFooterRender?: (record: any, rowIndex: number) => React.ReactNode;
   rowDetailFooterRender?: (
     detailRecord: any,
@@ -142,7 +203,7 @@ export interface TableProps
     parentRowIndex: number
   ) => React.ReactNode;
 
-  // Eventos
+  // Events
   onCheckedChange?: (rowData: any, index: number, checked: boolean) => void;
   onCheckedAllChange?: (checked: boolean) => void;
   onDoubleClick?: (rowData: any, index: number) => void;
@@ -153,17 +214,19 @@ export interface TableProps
     parentRowIndex: number
   ) => void;
 
-  // Novos eventos para gerenciamento de dados
+  // New events for data management
   onDataLoaded?: (data: any[], totalRecords: number) => void;
   onLoadingStateChange?: (loading: boolean) => void;
   onError?: (error: any) => void;
 }
+
 export enum SelectionType {
   NONE = 1,
   SINGLE = 1,
   MULTIPLE = 2,
   CHECKBOX = 3,
 }
+
 export enum ColumnType {
   STRING = 1,
   FLOAT = 2,
@@ -184,4 +247,3 @@ export enum TableViewMode {
   TABLE = 1,
   CARD = 2,
 }
-export type ScreenSize = "xs" | "sm" | "md" | "lg" | "xl" | "xxl";

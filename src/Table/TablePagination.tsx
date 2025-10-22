@@ -4,42 +4,7 @@ import { useSmartConfig } from "../hook/useSmartConfig";
 import { Tooltip } from "../Tooltip/Tooltip";
 import { TooltipPosition } from "../types";
 import "./TablePagination.scss";
-export interface TablePaginationProps {
-  currentPage: number;
-  totalPages: number;
-  totalRecords: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  loading?: boolean;
-  customTexts?: {
-    showing?: string;
-    to?: string;
-    of?: string;
-    records?: string;
-    firstPage?: string;
-    previousPage?: string;
-    nextPage?: string;
-    lastPage?: string;
-    page?: string;
-  };
-  customClasses?: {
-    container?: string;
-    info?: string;
-    controls?: string;
-    pagination?: string;
-    pageItem?: string;
-    pageLink?: string;
-    pageInfo?: string;
-    activePage?: string;
-    disabledPage?: string;
-  };
-  customIcons?: {
-    firstPage?: string;
-    previousPage?: string;
-    nextPage?: string;
-    lastPage?: string;
-  };
-}
+import { TablePaginationComponentProps } from "./types";
 
 export function TablePagination({
   currentPage,
@@ -51,7 +16,7 @@ export function TablePagination({
   customTexts = {},
   customClasses = {},
   customIcons = {},
-}: TablePaginationProps) {
+}: TablePaginationComponentProps) {
   const config = useSmartConfig();
 
   // Get texts from config

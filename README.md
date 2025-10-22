@@ -1,5 +1,5 @@
 ````markdown
-# SmartR — React form & data components
+# smartr-ui — React form & data components
 
 A pragmatic component kit for building robust, data-heavy React apps: forms, tables, layout, validation, file inputs, and more — with strong TypeScript types and real-world ergonomics.
 
@@ -19,8 +19,7 @@ A pragmatic component kit for building robust, data-heavy React apps: forms, tab
 ## Installation
 
 ```bash
-npm install @diegodeveloper/smartr
-```
+npm install smartr-ui
 ````
 
 **Peer dependencies:** `react` (^16.8.0 || ^17.0.0 || ^18.0.0), `react-dom`
@@ -31,7 +30,7 @@ npm install @diegodeveloper/smartr
 
 ```tsx
 import React from "react";
-import { Row, Editor, Input, ColumnSize } from "@diegodeveloper/smartr";
+import { Row, Editor, Input, ColumnSize } from "smartr-ui";
 
 function ExampleForm() {
   const [form, setForm] = React.useState({
@@ -70,7 +69,7 @@ function ExampleForm() {
 
 ## Core Components
 
-### Editor - The Universal Input Component
+### Editor — The universal input component
 
 `Editor` handles multiple input types through a single component:
 
@@ -118,10 +117,10 @@ function ExampleForm() {
 />
 ```
 
-### Table - Advanced Data Display
+### Table — Advanced data display
 
 ```tsx
-import { Table, AlignType } from "@diegodeveloper/smartr";
+import { Table, AlignType } from "smartr-ui";
 
 const columns = [
   { header: "Name", accessor: "name" },
@@ -140,10 +139,10 @@ function DataTable() {
 }
 ```
 
-### Layout Components
+### Layout components
 
 ```tsx
-import { Row, Column, Container } from "@diegodeveloper/smartr";
+import { Row, Column, Container } from "smartr-ui";
 
 function LayoutExample() {
   return (
@@ -165,7 +164,7 @@ function LayoutExample() {
 
 ## Advanced Features
 
-### Custom Validation
+### Custom validation
 
 ```tsx
 const validateEmail = async (value: string) => {
@@ -192,7 +191,7 @@ const validateEmail = async (value: string) => {
 />;
 ```
 
-### Responsive Grid System
+### Responsive grid system
 
 ```tsx
 <Row>
@@ -210,19 +209,19 @@ const validateEmail = async (value: string) => {
 
 ## UI Components
 
-- **Alert** - Contextual feedback messages
-- **Loading** - Loading indicators
-- **Tooltip** - Informational tooltips
-- **CheckboxGroup** - Checkbox group management
-- **Radio** - Radio button groups
-- **Select** - Enhanced dropdowns
+* **Alert** — Contextual feedback messages
+* **Loading** — Loading indicators
+* **Tooltip** — Informational tooltips
+* **CheckboxGroup** — Checkbox group management
+* **Radio** — Radio button groups
+* **Select** — Enhanced dropdowns
 
 ---
 
 ## Configuration
 
 ```tsx
-import { configManager } from "@diegodeveloper/smartr";
+import { configManager } from "smartr-ui";
 
 // Set global defaults
 configManager.setConfig({
@@ -245,7 +244,7 @@ import {
   EditorPropType,
   TableColumnProps,
   ValidationResult,
-} from "@diegodeveloper/smartr";
+} from "smartr-ui";
 
 // All props are fully typed
 const editorProps: EditorPropType = {
@@ -257,14 +256,14 @@ const editorProps: EditorPropType = {
 
 ---
 
-## Real-World Usage Patterns
+## Real-world usage patterns
 
 This library is battle-tested in production applications handling:
 
-- **Complex forms** with dependent fields and conditional logic
-- **Data-intensive tables** with sorting, filtering, and pagination
-- **File management** with upload, preview, and download capabilities
-- **Multi-step workflows** with validation at each stage
+* **Complex forms** with dependent fields and conditional logic
+* **Data-intensive tables** with sorting, filtering, and pagination
+* **File management** with upload, preview, and download capabilities
+* **Multi-step workflows** with validation at each stage
 
 ---
 
@@ -284,6 +283,6 @@ MIT © Diego Martins
 
 ## Support
 
-For issues and questions, please [create an issue](https://github.com/DiegoSDeveloper/smartr/issues).
+For issues and questions, please create an issue on the repository: [https://github.com/DiegoSDeveloper/smartr-ui/issues](https://github.com/DiegoSDeveloper/smartr-ui/issues)
 
 ```

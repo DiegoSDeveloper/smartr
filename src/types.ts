@@ -7,7 +7,7 @@ export enum ScreenSize {
   MD = "md",
   LG = "lg",
   XL = "xl",
-  XXL = "xxl",
+  XXL = "xxl", 
 }
 
 export enum ColumnSize {

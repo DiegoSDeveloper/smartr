@@ -9,7 +9,6 @@ import {
 import {
   AlignType,
   ColumnType,
-  ScreenSize,
   SelectionType,
   TableColumnProps,
   TableProps,
@@ -22,11 +21,19 @@ import { classNames } from "../Utils/utils";
 import { useSmartConfig } from "../hook/useSmartConfig";
 import { TablePagination } from "./TablePagination";
 import { Loading } from "../Loading";
+import { ScreenSize } from "../types";
 
 // Determine the default view mode based on screen size
 const getDefaultViewMode = (defaultCardBelow: ScreenSize): TableViewMode => {
   const screenSize = Util.getScreenSize();
-  const order: ScreenSize[] = ["xs", "sm", "md", "lg", "xl", "xxl"];
+  const order: ScreenSize[] = [
+    ScreenSize.XS,
+    ScreenSize.SM,
+    ScreenSize.MD,
+    ScreenSize.LG,
+    ScreenSize.XL,
+    ScreenSize.XXL,
+  ];
 
   return order.indexOf(screenSize) < order.indexOf(defaultCardBelow)
     ? TableViewMode.CARD
@@ -55,7 +62,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       culture,
       selection = SelectionType.NONE,
       enableSelectAll = false,
-      cardViewModeBelow = "md",
+      cardViewModeBelow = ScreenSize.MD,
       noRecordMessage,
       sortAscendingIcon,
       sortDescendingIcon,
@@ -66,16 +73,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       data = [],
       className,
       classNameDetail,
-
-      // New pagination props
-      totalRecords,
-      currentPage = 1,
-      pageSize = 10,
-      totalPages,
-      showPagination = false,
-      paginationPosition = "bottom",
-      customPaginationRender,
-      onPageChange,
+      pagination = {},
 
       // New data management props
       enableDataManagement = false,
@@ -89,6 +87,17 @@ export const Table = forwardRef<TableRef, TableProps>(
     },
     ref
   ) => {
+    const {
+      totalRecords,
+      currentPage = 1,
+      pageSize = 10,
+      totalPages,
+      showPagination = false,
+      paginationPosition = "bottom",
+      customPaginationRender,
+      onPageChange,
+    } = pagination;
+
     const config = useSmartConfig();
 
     const [sortedColumn, setSortedColumn] = useState<TableColumnProps>(null);
@@ -103,7 +112,14 @@ export const Table = forwardRef<TableRef, TableProps>(
     const [internalTotalPages, setInternalTotalPages] = useState(0);
 
     const screenSize = Util.getScreenSize();
-    const order: ScreenSize[] = ["xs", "sm", "md", "lg", "xl", "xxl"];
+    const order: ScreenSize[] = [
+      ScreenSize.XS,
+      ScreenSize.SM,
+      ScreenSize.MD,
+      ScreenSize.LG,
+      ScreenSize.XL,
+      ScreenSize.XXL,
+    ];
     const screenIdx = order.indexOf(screenSize);
 
     const finalTimeZone = timeZone ?? config.table.timeZone;
