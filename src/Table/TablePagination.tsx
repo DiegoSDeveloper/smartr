@@ -85,9 +85,7 @@ export function TablePagination({
   }
 
   return (
-    <div
-      className={`${classes.container} d-flex justify-content-between align-items-center flex-wrap`}
-    >
+    <div className={`${classes.container}`}>
       {/* Pagination info - LADO ESQUERDO */}
       <div className={classes.info}>
         <span>
@@ -99,7 +97,7 @@ export function TablePagination({
 
       {/* Pagination controls - LADO DIREITO */}
       <div className={classes.controls}>
-        <ul className={`${classes.pagination} mb-0`}>
+        <ul className={`${classes.pagination}`}>
           {/* First page button */}
           <li className={getPageItemClass(isFirstPage)}>
             <Tooltip position={TooltipPosition.Top} text={texts.firstPage}>
@@ -132,9 +130,7 @@ export function TablePagination({
 
           {/* Current page indicator - BADGE ENTRE SETAS */}
           <li className={`${classes.pageItem} ${classes.pageIndicatorBadge}`}>
-            <span
-              className={`${classes.pageLink} ${classes.pageInfo} bg-transparent border-0 text-dark fw-semibold`}
-            >
+            <span className={`${classes.pageInfo}`}>
               {texts.page} {safeCurrentPage} {texts.of} {safeTotalPages}
             </span>
           </li>

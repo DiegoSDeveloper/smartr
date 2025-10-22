@@ -1,4 +1,4 @@
-````markdown
+```markdown
 # smartr-ui — React form & data components
 
 A pragmatic component kit for building robust, data-heavy React apps: forms, tables, layout, validation, file inputs, and more — with strong TypeScript types and real-world ergonomics.
@@ -13,6 +13,7 @@ A pragmatic component kit for building robust, data-heavy React apps: forms, tab
 - **Validation system** with built-in rules and custom async hooks on blur/change/submit
 - **TypeScript first** with full type definitions
 - **Bootstrap compatible** responsive design
+- **Customizable configuration** with user-defined settings and themes
 
 ---
 
@@ -20,7 +21,7 @@ A pragmatic component kit for building robust, data-heavy React apps: forms, tab
 
 ```bash
 npm install smartr-ui
-````
+```
 
 **Peer dependencies:** `react` (^16.8.0 || ^17.0.0 || ^18.0.0), `react-dom`
 
@@ -139,6 +140,31 @@ function DataTable() {
 }
 ```
 
+### Alert — Contextual feedback messages
+
+```tsx
+import { Alert, AlertType } from "smartr-ui";
+
+function AlertExamples() {
+  return (
+    <>
+      <Alert type={AlertType.Success}>
+        <strong>Success!</strong> Operation completed successfully.
+      </Alert>
+      <Alert type={AlertType.Warning}>
+        <strong>Warning!</strong> Please check your input.
+      </Alert>
+      <Alert type={AlertType.Danger}>
+        <strong>Error!</strong> Something went wrong.
+      </Alert>
+      <Alert type={AlertType.Info}>
+        <strong>Info:</strong> This is an informational message.
+      </Alert>
+    </>
+  );
+}
+```
+
 ### Layout components
 
 ```tsx
@@ -209,28 +235,90 @@ const validateEmail = async (value: string) => {
 
 ## UI Components
 
-* **Alert** — Contextual feedback messages
-* **Loading** — Loading indicators
-* **Tooltip** — Informational tooltips
+* **Alert** — Contextual feedback messages with customizable types and styling
+* **Loading** — Loading indicators with different sizes and themes
+* **Tooltip** — Informational tooltips with configurable positioning
 * **CheckboxGroup** — Checkbox group management
 * **Radio** — Radio button groups
-* **Select** — Enhanced dropdowns
+* **Select** — Enhanced dropdowns with search and grouping
 
 ---
 
 ## Configuration
+
+### Global Configuration
 
 ```tsx
 import { configManager } from "smartr-ui";
 
 // Set global defaults
 configManager.setConfig({
-  defaultDateFormat: "dd/MM/yyyy",
-  validation: {
-    validateOnBlur: true,
-    validateOnChange: false,
+  behavior: {
+    validation: {
+      validateOnBlur: true,
+      validateOnSubmit: true,
+    },
+    input: {
+      thousandsSeparator: ".",
+      decimalSeparator: ",",
+      decimalPlaces: 2,
+    },
+  },
+  components: {
+    alert: {
+      textAlign: "center",
+      classes: {
+        container: "alert",
+        success: "alert-success",
+        warning: "alert-warning",
+        danger: "alert-danger",
+        info: "alert-info",
+      },
+    },
+    table: {
+      behavior: {
+        pageSize: 10,
+        pageSizes: [10, 25, 50, 100],
+      },
+    },
   },
 });
+```
+
+### Component-specific Configuration
+
+```tsx
+// Override configuration for specific component instance
+<Alert 
+  type={AlertType.Warning}
+  config={{
+    textAlign: "left",
+    classes: {
+      warning: "custom-warning-class",
+    }
+  }}
+>
+  Custom styled alert
+</Alert>
+```
+
+### Using Configuration Files
+
+```json
+// smartR.config.json
+{
+  "behavior": {
+    "input": {
+      "thousandsSeparator": ".",
+      "decimalSeparator": ","
+    }
+  },
+  "components": {
+    "alert": {
+      "textAlign": "center"
+    }
+  }
+}
 ```
 
 ---
@@ -244,6 +332,8 @@ import {
   EditorPropType,
   TableColumnProps,
   ValidationResult,
+  AlertType,
+  AlertConfig,
 } from "smartr-ui";
 
 // All props are fully typed
@@ -252,7 +342,33 @@ const editorProps: EditorPropType = {
   title: "Name",
   required: true,
 };
+
+const alertConfig: Partial<AlertConfig> = {
+  textAlign: "center",
+  classes: {
+    success: "custom-success",
+  },
+};
 ```
+
+---
+
+## Theming and Customization
+
+The library supports both light and dark themes and can be customized through CSS variables:
+
+```css
+/* Custom theme variables */
+:root {
+  --bs-primary: #your-color;
+  --bs-success: #your-color;
+  --bs-warning: #your-color;
+  --bs-danger: #your-color;
+  --bs-info: #your-color;
+}
+```
+
+All components respect Bootstrap's theme variables and can be customized to match your design system.
 
 ---
 
@@ -264,6 +380,8 @@ This library is battle-tested in production applications handling:
 * **Data-intensive tables** with sorting, filtering, and pagination
 * **File management** with upload, preview, and download capabilities
 * **Multi-step workflows** with validation at each stage
+* **Multi-language applications** with configurable translations
+* **Theme switching** between light and dark modes
 
 ---
 
@@ -284,5 +402,4 @@ MIT © Diego Martins
 ## Support
 
 For issues and questions, please create an issue on the repository: [https://github.com/DiegoSDeveloper/smartr-ui/issues](https://github.com/DiegoSDeveloper/smartr-ui/issues)
-
 ```

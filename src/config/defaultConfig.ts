@@ -57,16 +57,16 @@ export const defaultConfig = {
       },
       classes: {
         badge: "badge bg-link rounded-pill font-size-12",
-        container: "table-container",
         // Table Pagination specific classes
         pagination: {
-          container: "table-pagination",
+          container:
+            "table-pagination d-flex justify-content-between align-items-center flex-wrap",
           info: "pagination-info",
           controls: "pagination-controls",
-          pagination: "pagination pagination-rounded mb-sm-0",
+          pagination: "pagination pagination-rounded mb-sm-0 mb-0",
           pageItem: "page-item",
           pageLink: "page-link",
-          pageInfo: "page-info",
+          pageInfo: "page-info bg-transparent border-0 text-dark fw-semibold",
           pageIndicatorBadge: "page-indicator-badge",
           activePage: "active",
           disabledPage: "disabled",
