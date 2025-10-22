@@ -157,9 +157,7 @@ export const Table = forwardRef<TableRef, TableProps>(
         fetchData(internalCurrentPage);
       }
     }, [isManaged, autoLoad, internalCurrentPage]);
-    // No Table/index.tsx, ADICIONE estes debug:
 
-    // 1. Debug no fetchData
     const fetchData = async (page: number) => {
       if (!onFetchData) return;
 
@@ -192,12 +190,6 @@ export const Table = forwardRef<TableRef, TableProps>(
         onLoadingStateChange?.(loadingState);
       }
     };
-
-    useEffect(() => {
-      if (isManaged && autoLoad) {
-        fetchData(internalCurrentPage);
-      }
-    }, [isManaged, autoLoad, internalCurrentPage]);
 
     const handlePageChange = (page: number) => {
       if (isManaged) {
