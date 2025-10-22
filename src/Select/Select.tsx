@@ -77,7 +77,7 @@ const Select = (props: SelectPropTypes) => {
     children,
     ...attributes
   } = props;
-  const configSmartR = useSmartConfig();
+  const config = useSmartConfig();
   // Se não tem filter, não é multiple, não tem render customizado e não é agrupado,
   // renderiza o select nativo simples
   const shouldUseNativeSelect =
@@ -101,7 +101,8 @@ const Select = (props: SelectPropTypes) => {
         inputRef={inputRef}
         children={children}
         className={classNames(className, {
-          [configSmartR.classes.controlGroupDisabledControl]: isDisabled,
+          [config.components.editor.classes.controlGroupDisabledControl]:
+            isDisabled,
         })}
       ></EditorInput>
     );
@@ -122,8 +123,7 @@ const Select = (props: SelectPropTypes) => {
 
   let editorDescription = null;
   let selecteds = [];
-  let selectLabelText = configSmartR.texts.optionsMultipleSelectAll;
-
+  let selectLabelText = config.components.select.texts.multipleSelectAll;
   useEffect(() => {
     if (isDisabled) {
       setFilterState((prevState) => ({
@@ -313,10 +313,10 @@ const Select = (props: SelectPropTypes) => {
       }
 
       if (selecteds.length === 0) {
-        selectLabelText = configSmartR.texts.optionsMultipleSelectAll;
-        editorDescription = configSmartR.texts.optionsMultipleNoneSelected;
+        selectLabelText = config.components.select.texts.multipleSelectAll;
+        editorDescription = config.components.select.texts.multipleNoneSelected;
       } else if (selecteds.length === dataSource.length) {
-        selectLabelText = configSmartR.texts.optionsMultipleSelectNone;
+        selectLabelText = config.components.select.texts.multipleSelectNone;
       }
       if (selecteds.length > 0) {
         if (selecteds.length <= optionsLimiteDescriptionSelected) {
@@ -325,10 +325,10 @@ const Select = (props: SelectPropTypes) => {
             .map((item) => item[optionsDescription]);
 
           editorDescription = descriptions.join(
-            configSmartR.optionsMultipleSeparatorDescription
+            config.behavior.select.optionsMultipleSeparatorDescription
           );
         } else {
-          editorDescription = `${selecteds.length} ${configSmartR.texts.optionsMultipleSelected}`;
+          editorDescription = `${selecteds.length} ${config.components.select.texts.multipleSelected}`;
         }
       }
     }
@@ -377,9 +377,13 @@ const Select = (props: SelectPropTypes) => {
               return (
                 <div
                   key={`group-${groupIndex}-option-${optionIndex}`}
-                  className={classNames(configSmartR.classes.select.option, {
-                    [configSmartR.classes.select.optionDisabled]: isDisabled,
-                  })}
+                  className={classNames(
+                    config.components.select.classes.option,
+                    {
+                      [config.components.select.classes.optionDisabled]:
+                        isDisabled,
+                    }
+                  )}
                   onClick={
                     isDisabled ? undefined : (e) => handleOptionClick(option, e)
                   }
@@ -399,8 +403,8 @@ const Select = (props: SelectPropTypes) => {
             return (
               <div
                 key={`group-${groupIndex}-option-${optionIndex}`}
-                className={classNames(configSmartR.classes.select.option, {
-                  [configSmartR.classes.select.optionDisabled]: isDisabled,
+                className={classNames(config.components.select.classes.option, {
+                  [config.components.select.classes.optionDisabled]: isDisabled,
                 })}
                 onClick={
                   isDisabled ? undefined : (e) => handleOptionClick(option, e)
@@ -410,7 +414,7 @@ const Select = (props: SelectPropTypes) => {
                   <input
                     data-smarteditor="CheckBox"
                     type="checkbox"
-                    className={configSmartR.classes.checkbox}
+                    className={config.components.checkbox.classes.input}
                     checked={isSelected}
                     value={option[optionsId]}
                     disabled={isDisabled}
@@ -436,7 +440,7 @@ const Select = (props: SelectPropTypes) => {
 
           return (
             <div key={`group-${groupIndex}`}>
-              <div className={configSmartR.classes.select.groupHeader}>
+              <div className={config.components.select.classes.groupHeader}>
                 {groupName}
               </div>
               {optionElements}
@@ -454,8 +458,8 @@ const Select = (props: SelectPropTypes) => {
           return (
             <div
               key={index}
-              className={classNames(configSmartR.classes.select.option, {
-                [configSmartR.classes.select.optionDisabled]: isDisabled,
+              className={classNames(config.components.select.classes.option, {
+                [config.components.select.classes.optionDisabled]: isDisabled,
               })}
               onClick={
                 isDisabled ? undefined : (e) => handleOptionClick(option, e)
@@ -476,8 +480,8 @@ const Select = (props: SelectPropTypes) => {
         return (
           <div
             key={index}
-            className={classNames(configSmartR.classes.select.option, {
-              [configSmartR.classes.select.optionDisabled]: isDisabled,
+            className={classNames(config.components.select.classes.option, {
+              [config.components.select.classes.optionDisabled]: isDisabled,
             })}
             onClick={
               isDisabled ? undefined : (e) => handleOptionClick(option, e)
@@ -487,7 +491,7 @@ const Select = (props: SelectPropTypes) => {
               <input
                 data-smarteditor="CheckBox"
                 type="checkbox"
-                className={configSmartR.classes.checkbox}
+                className={config.components.checkbox.classes.input}
                 checked={isSelected}
                 value={option[optionsId]}
                 disabled={isDisabled}
@@ -512,8 +516,9 @@ const Select = (props: SelectPropTypes) => {
   }
 
   const classes = mapToCssModules(
-    classNames(className, configSmartR.classes.select.container, {
-      [configSmartR.classes.controlGroupDisabledControl]: isDisabled,
+    classNames(className, config.components.select.classes.container, {
+      [config.components.editor.classes.controlGroupDisabledControl]:
+        isDisabled,
     })
   );
 
@@ -536,19 +541,19 @@ const Select = (props: SelectPropTypes) => {
         inputRef={inputRef}
       ></EditorInput>
       <div
-        className={`${configSmartR.classes.select.innerContainer} ${
+        className={`${config.components.select.classes.innerContainer} ${
           filterState.isOpen ? "open" : ""
         }`}
       >
         <div
-          className={`${configSmartR.classes.select.optionSelectedInput} ${
+          className={`${config.components.select.classes.optionSelectedInput} ${
             filterState.isOpen ? "open" : ""
           }`}
         >
           {editorDescription}
         </div>
         <div
-          className={configSmartR.classes.select.optionsContainer}
+          className={config.components.select.classes.optionsContainer}
           style={{ width: `${containerWidth}px` }}
         >
           {optionsMultiple && !isDisabled ? (
@@ -558,7 +563,7 @@ const Select = (props: SelectPropTypes) => {
                 e.preventDefault();
                 selectAllClick(selecteds.length < options.length);
               }}
-              className={configSmartR.classes.select.selectAll}
+              className={config.components.select.classes.selectAll}
             >
               {selectLabelText}
             </a>
@@ -566,7 +571,7 @@ const Select = (props: SelectPropTypes) => {
           {optionsFilter && !isDisabled ? (
             <input
               type="text"
-              className={configSmartR.classes.select.searchInput}
+              className={config.components.select.classes.searchInput}
               value={searchText}
               ref={searchInputRef}
               onChange={handleSearchChange}
@@ -575,7 +580,7 @@ const Select = (props: SelectPropTypes) => {
             />
           ) : null}
 
-          <div className={configSmartR.classes.select.dropdown}>
+          <div className={config.components.select.classes.dropdown}>
             {innerChildren}
           </div>
         </div>

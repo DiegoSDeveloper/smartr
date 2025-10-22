@@ -20,20 +20,20 @@ export function TablePagination({
 
   // Get texts from config
   const texts = {
-    showing: config.texts.table.showing,
-    to: config.texts.table.to,
-    of: config.texts.table.of,
-    records: config.texts.table.records,
-    firstPage: config.texts.table.firstPage,
-    previousPage: config.texts.table.previousPage,
-    nextPage: config.texts.table.nextPage,
-    lastPage: config.texts.table.lastPage,
-    page: config.texts.table.page,
+    showing: config.components.table.texts.showing,
+    to: config.components.table.texts.to,
+    of: config.components.table.texts.of,
+    records: config.components.table.texts.records,
+    firstPage: config.components.table.texts.firstPage,
+    previousPage: config.components.table.texts.previousPage,
+    nextPage: config.components.table.texts.nextPage,
+    lastPage: config.components.table.texts.lastPage,
+    page: config.components.table.texts.page,
     ...customTexts,
   };
 
   // ✅ USA CLASSES DE table.pagination
-  const defaultClasses = config.classes.table.pagination;
+  const defaultClasses = config.components.table.classes.pagination;
   const classes = {
     ...defaultClasses,
     ...customClasses,
@@ -41,10 +41,10 @@ export function TablePagination({
 
   // Get icons from config
   const icons = {
-    firstPage: config.icons.table.firstPage,
-    previousPage: config.icons.table.previousPage,
-    nextPage: config.icons.table.nextPage,
-    lastPage: config.icons.table.lastPage,
+    firstPage: config.components.table.icons.firstPage,
+    previousPage: config.components.table.icons.previousPage,
+    nextPage: config.components.table.icons.nextPage,
+    lastPage: config.components.table.icons.lastPage,
     ...customIcons,
   };
 

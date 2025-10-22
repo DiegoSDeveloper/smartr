@@ -1,3 +1,4 @@
+import { useSmartConfig } from "../hook/useSmartConfig";
 import { mapToCssModules } from "../Utils/utils";
 import { classNames } from "../Utils/utils";
 
@@ -7,42 +8,88 @@ export enum AlertType {
   Danger = 3,
   Info = 4,
 }
-interface alertPropTypes {
+
+// Interface para as configurações do Alert baseada na sua estrutura
+export interface AlertConfig {
+  textAlign?: "center" | "left" | "right";
+  classes: {
+    container: string;
+    success: string;
+    warning: string;
+    danger: string;
+    info: string;
+  };
+}
+
+interface AlertProps {
   type: AlertType;
   className?: string;
   children?: React.ReactNode;
+  config?: Partial<AlertConfig>; // Configurações opcionais por instância
 }
-export function Alert(props: alertPropTypes) {
-  const { type, children, className } = props;
-  let classes = "";
+
+export function Alert(props: AlertProps) {
+  const { type, children, className, config = {} } = props;
+
+  // Busca configurações do usuário via hook
+  const userConfig = useSmartConfig();
+
+  // Configuração padrão fallback baseada na sua estrutura
+  const defaultConfig: AlertConfig = {
+    textAlign: "center",
+    classes: {
+      container: "alert",
+      success: "alert-success",
+      warning: "alert-warning",
+      danger: "alert-danger",
+      info: "alert-info",
+    },
+  };
+
+  // Merge das configurações
+  const mergedConfig: AlertConfig = {
+    ...defaultConfig,
+    ...userConfig.components?.alert, // Configurações do usuário do smart config
+    ...config, // Configurações por instância
+    classes: {
+      ...defaultConfig.classes,
+      ...userConfig.components.alert.classes,
+      ...config.classes,
+    },
+  };
+
+  let typeClass = "";
   switch (type) {
     case AlertType.Danger:
-      {
-        classes = "alert-danger";
-      }
+      typeClass = mergedConfig.classes.danger;
       break;
     case AlertType.Warning:
-      {
-        classes = "alert-warning";
-      }
+      typeClass = mergedConfig.classes.warning;
       break;
     case AlertType.Success:
-      {
-        classes = "alert-success";
-      }
+      typeClass = mergedConfig.classes.success;
       break;
     case AlertType.Info:
-      {
-        classes = "alert-info";
-      }
+      typeClass = mergedConfig.classes.info;
       break;
   }
-  classes = mapToCssModules(classNames(classes, className));
+
+  const classes = mapToCssModules(
+    classNames(
+      mergedConfig.classes.container,
+      typeClass,
+      {
+        "text-center": mergedConfig.textAlign === "center",
+        "text-left": mergedConfig.textAlign === "left",
+        "text-right": mergedConfig.textAlign === "right",
+      },
+      className
+    )
+  );
+
   return (
-    <>
-      <div className={`alert ${classes} text-center`} role="alert">
-        {children}
-      </div>
-    </>
+    <div className={classes} role="alert">
+      {children}
+    </div>
   );
 }

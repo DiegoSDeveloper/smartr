@@ -81,7 +81,7 @@ export function Radio(props: RadioPropTypes) {
         title={option[optionsDescription]}
         tooltip={option[optionsTooltip]}
         mode={LabelMode.CheckBox}
-        className={config.classes.radioLabel}
+        className={config.components.radio.classes.label}
       ></Label>
     );
 
@@ -89,7 +89,7 @@ export function Radio(props: RadioPropTypes) {
       "label",
       {
         ...radioLabelAttributes,
-        className: config.classes.radioLabel,
+        className: config.components.radio.classes.label,
       },
       option[optionsDescription]
     );
@@ -110,8 +110,8 @@ export function Radio(props: RadioPropTypes) {
       {
         key: index,
         className: !inline
-          ? config.classes.radioGroup
-          : config.classes.radioGroupInLine,
+          ? config.components.radio.classes.group
+          : config.components.radio.classes.groupInLine,
       },
       radioInput,
       radioLabel
@@ -123,7 +123,7 @@ export function Radio(props: RadioPropTypes) {
   const optionsGroup = React.createElement(
     "div",
     {
-      className: config.classes.radioGroupList,
+      className: config.components.radio.classes.groupList,
       ref: inputRef,
     },
     innerChildren

@@ -32,7 +32,7 @@ export const Column = React.forwardRef<HTMLElement, columnPropTypes>(
       xl,
       xxl,
       size,
-      tag = config.columnTag,
+      tag = config.tags.columnTag,
       children,
       ...attributes
     } = props;

@@ -89,26 +89,26 @@ export function Label(props: labelPropTypes) {
   if (!horizontal) {
     switch (mode) {
       case LabelMode.CheckBox:
-        labelClasses = config.classes.checkboxLabel;
+        labelClasses = config.components.checkbox.classes.label;
         break;
       case LabelMode.RadioButton:
-        labelClasses = config.classes.radioLabel;
+        labelClasses = config.components.radio.classes.label;
         break;
       case LabelMode.Normal:
       default:
-        labelClasses = config.classes.label;
+        labelClasses = config.components.editor.classes.label;
         break;
     }
   } else {
     // Mantém a horizontalLabel para layout horizontal
-    labelClasses = config.classes.horizontalLabel;
+    labelClasses = config.components.editor.classes.horizontalLabel;
   }
 
   if (required) {
-    labelClasses += ` ${config.classes.required}`;
+    labelClasses += ` ${config.components.editor.classes.required}`;
   }
   if (titleBold) {
-    labelClasses += ` ${config.classes.titleBold}`;
+    labelClasses += ` ${config.components.editor.classes.titleBold}`;
   }
 
   labelClasses = mapToCssModules(classNames(colClasses, labelClasses));
@@ -121,7 +121,7 @@ export function Label(props: labelPropTypes) {
       <>
         {title}{" "}
         <Tooltip position={toolTipPosition} text={tooltip}>
-          <i className={config.icons.tooltip}></i>
+          <i className={config.resources.icons.tooltip}></i>
         </Tooltip>
       </>
     );

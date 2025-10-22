@@ -15,9 +15,8 @@ export const Loading: React.FC<LoadingProps> = ({
   className = "",
 }) => {
   const config = useSmartConfig();
-  const loadingText = text || config.messages.table.loadingText;
-
-  const classes = config.classes.loading;
+  const loadingText = text || config.components.table.texts.loadingText;
+  const classes = config.components.loading.classes;
 
   const sizeClass =
     classes[`container${size.charAt(0).toUpperCase() + size.slice(1)}`];

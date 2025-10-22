@@ -31,9 +31,9 @@ export function Tooltip(props: TooltipPropTypes) {
       if (node !== null) {
         const overlayRect = tooltipElementRef.current.getBoundingClientRect();
         const tooltipWidth =
-          node.getBoundingClientRect().width < config.toolTipWidth
+          node.getBoundingClientRect().width < config.components.tooltip.width
             ? node.getBoundingClientRect().width
-            : config.toolTipWidth;
+            : config.components.tooltip.width;
         const tooltipRect = node.getBoundingClientRect();
         let top, left;
 
@@ -71,12 +71,12 @@ export function Tooltip(props: TooltipPropTypes) {
   );
   let tooltipClass =
     position === TooltipPosition.Top
-      ? config.classes.tooltipTop
+      ? config.components.tooltip.classes.top
       : position === TooltipPosition.Bottom
-      ? config.classes.tooltipBottom
+      ? config.components.tooltip.classes.bottom
       : position === TooltipPosition.Left
-      ? config.classes.tooltipLeft
-      : config.classes.tooltipRight;
+      ? config.components.tooltip.classes.left
+      : config.components.tooltip.classes.right;
   tooltipClass = mapToCssModules(classNames(className, tooltipClass));
   const toolTipDiv = showTooltip ? (
     <div

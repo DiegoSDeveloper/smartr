@@ -90,18 +90,18 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     input,
     valueType = getValueType(props.type),
     characterCasing = CharacterCasing.Upper,
-    maxFileSize,
-    maxFilesPlaceholder,
+    maxFileSize = config.behavior.file.maxFileSize,
+    maxFilesPlaceholder = config.behavior.file.maxFilesPlaceholder,
     max,
     min,
     minDate,
     maxDate,
     mask,
     getMaskedValue = false,
-    enableShowPassword = config.showPasswordIcon,
+    enableShowPassword = config.behavior.input.showPasswordIcon,
     showPasswordIconPosition = IconPosition.End,
-    showPasswordIcon = config.icons.showPassword,
-    hidePasswordIcon = config.icons.hidePassword,
+    showPasswordIcon = config.resources.icons.showPassword,
+    hidePasswordIcon = config.resources.icons.hidePassword,
     hasIcon = getDefaultHasIcon(props.type),
     iconPosition = getDefaultIconPosition(props.type),
     appendIcon = getDefaultIcon(props.type),
@@ -118,27 +118,31 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     fileDownloadName,
     prependButtons,
     appendButtons,
-    optionsId = config.optionsId,
-    optionsDescription = config.optionsDescription,
-    optionsToolTip = config.optionsToolTip,
-    optionsGroup = config.optionsGroup,
+    optionsId = config.behavior.select.optionsId,
+    optionsDescription = config.behavior.select.optionsDescription,
+    optionsToolTip = config.behavior.select.optionsToolTip,
+    optionsGroup = config.behavior.select.optionsGroup,
     optionGetDescription,
     optionGetGroup,
-    optionsFirstSelected = config.optionsFirstSelected,
-    optionsNoneSelectedValue = config.optionsNoneSelectedValue,
-    optionsNoneSelectedText = config.optionsNoneSelectedText,
+    optionsFirstSelected = config.behavior.select.optionsFirstSelected,
+    optionsNoneSelectedValue = config.behavior.select.optionsNoneSelectedValue,
+    optionsNoneSelectedText = config.components.select.texts
+      .optionsNoneSelectedText,
     options,
     optionsFilter = false,
     optionsGrouped = false,
     optionsMultiple = false,
-    optionsMultipleSeparatorValue = config.optionsMultipleSeparatorValue,
-    optionsMultipleSeparatorDescription = config.optionsMultipleSeparatorDescription,
-    optionsLimiteDescriptionSelected = config.optionsLimiteDescriptionSelected,
-    optionsFilterPlaceholder = config.texts.optionsFilterPlaceholder,
+    optionsMultipleSeparatorValue = config.behavior.select
+      .optionsMultipleSeparatorValue,
+    optionsMultipleSeparatorDescription = config.behavior.select
+      .optionsMultipleSeparatorDescription,
+    optionsLimiteDescriptionSelected = config.behavior.select
+      .optionsLimiteDescriptionSelected,
+    optionsFilterPlaceholder = config.components.select.texts.filterPlaceholder,
     optionRenderer,
-    thousandsSeparator = config.thousandsSeparator,
-    decimalSeparator = config.decimalSeparator,
-    decimalPlaces = config.decimalPlaces,
+    thousandsSeparator = config.behavior.input.thousandsSeparator,
+    decimalSeparator = config.behavior.input.decimalSeparator,
+    decimalPlaces = config.behavior.input.decimalPlaces,
     skipSubmit = false,
     state,
     dispatchState,
@@ -147,11 +151,11 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     listFormState,
     listFormIndex,
     dispatchListFormState,
-    validateOnBlur = config.validateOnBlur,
+    validateOnBlur = config.behavior.validation.validateOnBlur,
     validateOnChange = false,
     validateDefaultOnBlur = true,
     validateDefaultOnChange = true,
-    validateDefaultOnSubmit = config.validateOnSubmit,
+    validateDefaultOnSubmit = config.behavior.validation.validateOnSubmit,
     customValidationOnBlur,
     customValidationOnChange,
     customValidationOnSubmit,
@@ -159,10 +163,9 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     onDeleteFileClick,
     onChange,
     onBlur,
-    showValidationResultOnSubmit = config.validateOnSubmit,
+    showValidationResultOnSubmit = config.behavior.validation.validateOnSubmit,
     ...attributes
   } = props;
-
 
   const inputRadioRefs = useRef([]);
   const inputRef = useRef<
@@ -646,7 +649,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
   let noteLabel = null;
 
   let inputType = "input";
-  let classes = config.classes.input;
+  let classes = config.components.editor.classes.input;
 
   if (hasTitle && title) {
     titleLabel = (
@@ -677,12 +680,12 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       break;
     case Input.Radio:
       {
-        classes = `${config.classes.radio}`;
+        classes = `${config.components.radio.classes.input}`;
       }
       break;
     case Input.CheckBox:
       {
-        classes = `${config.classes.checkbox}`;
+        classes = `${config.components.checkbox.classes.input}`;
       }
       break;
     case Input.LongText:
@@ -694,8 +697,8 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     case Input.Phone:
     case Input.Fax:
       {
-        if (!editorMask && config.phoneMask) {
-          editorMask = config.phoneMask;
+        if (!editorMask && config.resources.masks.phone) {
+          editorMask = config.resources.masks.phone;
         }
       }
       break;
@@ -776,7 +779,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
           ? option[optionsGroup]
           : optionGetGroup
           ? optionGetGroup(option)
-          : "Sem Grupo";
+          : config.components.select.texts.optionsNoGroup;
 
         if (!groupedOptions.has(group)) {
           groupedOptions.set(group, []);
@@ -829,7 +832,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     classNames(
       className,
       classes,
-      isInvalid ? config.classes.invalid : null
+      isInvalid ? config.components.editor.classes.invalid : null
     )
   );
 
@@ -978,7 +981,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
 
   if (note) {
     const noteClasses = mapToCssModules(
-      classNames(config.classes.labelNote, noteClassName)
+      classNames(config.components.editor.classes.labelNote, noteClassName)
     );
     noteLabel = <label className={noteClasses}>{note}</label>;
   }
@@ -991,10 +994,10 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     if (invalidMessage) {
       invalidElementList.push(
         React.createElement(
-          config.invalidFeedbackTag,
+          config.tags.invalidFeedbackTag,
           {
             key: 0,
-            className: config.classes.validationMessageError,
+            className: config.components.validation.classes.messageError,
           },
           String(invalidMessage)
         )
@@ -1005,24 +1008,27 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       switch (item.Type) {
         case ValidationMessage.Error:
           {
-            messageClassName = config.classes.validationMessageError;
+            messageClassName =
+              config.components.validation.classes.messageError;
           }
           break;
 
         case ValidationMessage.Success:
           {
-            messageClassName = config.classes.validationMessageSuccess;
+            messageClassName =
+              config.components.validation.classes.messageSuccess;
           }
           break;
         case ValidationMessage.Warning:
           {
-            messageClassName = config.classes.validationMessageWarning;
+            messageClassName =
+              config.components.validation.classes.messageWarning;
           }
           break;
       }
       invalidElementList.push(
         React.createElement(
-          config.invalidFeedbackTag,
+          config.tags.invalidFeedbackTag,
           {
             key: index + 1,
             className: messageClassName,
@@ -1036,8 +1042,8 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     hasIcon &&
     (iconPosition === IconPosition.Both ||
       iconPosition === IconPosition.Start) ? (
-      <div className={config.classes.inputGroupPrependIcon}>
-        <span className={config.classes.inputGroupIcon}>
+      <div className={config.components.editor.classes.inputGroupPrependIcon}>
+        <span className={config.components.editor.classes.inputGroupIcon}>
           <i className={prependIcon}></i>
         </span>
       </div>
@@ -1047,8 +1053,8 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     hasIcon &&
     (iconPosition === IconPosition.Both ||
       iconPosition === IconPosition.End) ? (
-      <div className={config.classes.inputGroupAppendIcon}>
-        <span className={config.classes.inputGroupIcon}>
+      <div className={config.components.editor.classes.inputGroupAppendIcon}>
+        <span className={config.components.editor.classes.inputGroupIcon}>
           <i className={appendIcon}></i>
         </span>
       </div>
@@ -1059,12 +1065,14 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       <div
         className={
           showPasswordIconPosition === IconPosition.Start
-            ? config.classes.inputGroupPrependIcon
-            : config.classes.inputGroupAppendIcon
+            ? config.components.editor.classes.inputGroupPrependIcon
+            : config.components.editor.classes.inputGroupAppendIcon
         }
       >
         <span
-          className={config.classes.inputGroupShowPasswordIcon}
+          className={
+            config.components.editor.classes.inputGroupShowPasswordIcon
+          }
           onClick={onShowPasswordHandler}
         >
           <i className={showPassword ? hidePasswordIcon : showPasswordIcon}></i>
@@ -1081,14 +1089,14 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
   ));
 
   let inputGroup = (
-    <div className={config.classes.inputGroup}>
+    <div className={config.components.editor.classes.inputGroup}>
       {prependButtonElements}
-      {config.prependIconAfterInput && prependIconComponent}
+      {config.behavior.input.prependIconAfterInput && prependIconComponent}
       {(showPasswordIconPosition === IconPosition.Start ||
         showPasswordIconPosition === IconPosition.Both) &&
         showPasswordIconComponent}
       {editorInput}
-      {!config.prependIconAfterInput && prependIconComponent}
+      {!config.behavior.input.prependIconAfterInput && prependIconComponent}
       {(showPasswordIconPosition === IconPosition.End ||
         showPasswordIconPosition === IconPosition.Both) &&
         showPasswordIconComponent}
@@ -1103,11 +1111,11 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
 
   const classControlGroup = mapToCssModules(
     classNames(
-      config.classes.controlGroup,
-      isInvalid ? config.classes.invalid : "",
+      config.components.editor.classes.controlGroup,
+      isInvalid ? config.components.editor.classes.invalid : "",
       enabled && type !== Input.File
         ? ""
-        : config.classes.controlGroupDisabledControl
+        : config.components.editor.classes.controlGroupDisabledControl
     )
   );
   if (!horizontal) {
@@ -1139,7 +1147,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       </Column>
     );
     return (
-      <Row className={config.classes.horizontalFormRow}>
+      <Row className={config.components.editor.classes.horizontalFormRow}>
         {titleLabel} {inputGroup} {noteLabel} {invalidElementList}
       </Row>
     );

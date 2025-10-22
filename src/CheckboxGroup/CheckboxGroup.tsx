@@ -41,7 +41,7 @@ export function CheckboxGroup(props: checkboxGroupPropTypes) {
       mode={LabelMode.CheckBox}
       tooltip={tooltip}
       toolTipPosition={toolTipPosition}
-      className={config.classes.checkboxLabel}
+      className={config.components.checkbox.classes.label}
     ></Label>
   );
 
@@ -49,7 +49,7 @@ export function CheckboxGroup(props: checkboxGroupPropTypes) {
     "div",
     {
       key: 0,
-      className: config.classes.checkboxGroup,
+      className: config.components.checkbox.classes.group,
     },
     children,
     checkBoxLabel

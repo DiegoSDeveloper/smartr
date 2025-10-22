@@ -119,49 +119,53 @@ export function getDefaultHasIcon(type: Input) {
 
 export function getDefaultIconPosition(type: Input): IconPosition {
   const config = configManager.getConfig();
+
+  // ✅ NOVO CAMINHO: config.resources.iconsPosition
+  const iconsPosition = config.resources.iconsPosition;
+
   switch (type) {
     case Input.Mobile:
-      return config.icons.mobilePositionStart
+      return iconsPosition.mobile === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Phone:
-      return config.icons.phonePositionStart
+      return iconsPosition.phone === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Fax:
-      return config.icons.faxPositionStart
+      return iconsPosition.fax === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Money:
-      return config.icons.moneyPositionStart
+      return iconsPosition.money === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Percent:
-      return config.icons.percentPositionStart
+      return iconsPosition.percent === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Password:
-      return config.icons.passwordPositionStart
+      return iconsPosition.password === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Email:
-      return config.icons.emailPositionStart
+      return iconsPosition.email === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Date:
-      return config.icons.datePositionStart
+      return iconsPosition.date === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Time:
-      return config.icons.timePositionStart
+      return iconsPosition.time === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Card:
-      return config.icons.cardPositionStart
+      return iconsPosition.card === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.FastSearch:
-      return config.icons.fastSearchPositionStart
+      return iconsPosition.fastSearch === "start"
         ? IconPosition.Start
         : IconPosition.End;
   }
@@ -170,29 +174,32 @@ export function getDefaultIconPosition(type: Input): IconPosition {
 
 export function getDefaultIcon(type: Input) {
   const config = configManager.getConfig();
+
+  const icons = config.resources.icons;
+
   switch (type) {
     case Input.Mobile:
-      return config.icons.mobile;
+      return icons.mobile;
     case Input.Phone:
-      return config.icons.phone;
+      return icons.phone;
     case Input.Fax:
-      return config.icons.fax;
+      return icons.fax;
     case Input.Money:
-      return config.icons.money;
+      return icons.money;
     case Input.Percent:
-      return config.icons.percent;
+      return icons.percent;
     case Input.Password:
-      return config.icons.password;
+      return icons.password;
     case Input.Email:
-      return config.icons.email;
+      return icons.email;
     case Input.Date:
-      return config.icons.date;
+      return icons.date;
     case Input.Time:
-      return config.icons.time;
+      return icons.time;
     case Input.Card:
-      return config.icons.card;
+      return icons.card;
     case Input.FastSearch:
-      return config.icons.fastSearch;
+      return icons.fastSearch;
   }
   return "";
 }
@@ -368,27 +375,27 @@ export function getEditorAttributes(
     requiredMessage,
     accept,
     multiple = false,
-    optionsId = config.optionsId,
-    optionsDescription = config.optionsDescription,
-    optionsFirstSelected = config.optionsFirstSelected,
-    optionsNoneSelectedValue = config.optionsNoneSelectedValue,
-    optionsNoneSelectedText = config.optionsNoneSelectedText,
+    optionsId = config.behavior.select.optionsId,
+    optionsDescription = config.behavior.select.optionsDescription,
+    optionsFirstSelected = config.behavior.select.optionsFirstSelected,
+    optionsNoneSelectedValue = config.behavior.select.optionsNoneSelectedValue,
+    optionsNoneSelectedText = config.components.select.texts.optionsNoneSelectedText,
     options,
-    thousandsSeparator = config.thousandsSeparator,
-    decimalSeparator = config.decimalSeparator,
+    thousandsSeparator = config.behavior.input.thousandsSeparator,
+    decimalSeparator = config.behavior.input.decimalSeparator,
     formState,
     dispatchFormState,
-    validateOnBlur = config.validateOnBlur,
+    validateOnBlur = config.behavior.validation.validateOnBlur,
     validateOnChange = false,
     validateDefaultOnBlur = true,
     validateDefaultOnChange = true,
-    validateDefaultOnSubmit = config.validateOnSubmit,
+    validateDefaultOnSubmit = config.behavior.validation.validateOnSubmit,
     customValidationOnBlur,
     customValidationOnChange,
     customValidationOnSubmit,
     onChange,
     onBlur,
-    showValidationResultOnSubmit = config.validateOnSubmit,
+    showValidationResultOnSubmit = config.behavior.validation.validateOnSubmit,
     ...attributes
   } = props;
   let editorMask = mask;
@@ -528,11 +535,12 @@ export function getEditorAttributes(
     case Input.Fax:
       {
         editorAttributes["type"] = "tel";
-        if (!placeholder && config.phonePlaceholder) {
-          editorAttributes["placeholder"] = config.phonePlaceholder;
+        if (!placeholder && config.components.editor.placeHolders.phone) {
+          editorAttributes["placeholder"] =
+            config.components.editor.placeHolders.phone;
         }
-        if (!editorMask && config.phoneMask) {
-          editorMask = config.phoneMask;
+        if (!editorMask && config.resources.masks.phone) {
+          editorMask = config.resources.masks.phone;
         }
       }
       break;
@@ -774,7 +782,6 @@ export function applyMask(
   }
   return maskedValue;
 }
-
 export function validateEditorInputValue(
   currentValue: any,
   props: EditorPropType,
@@ -807,7 +814,7 @@ export function validateEditorInputValue(
           editorName,
           title,
           ValidationMessage.Error,
-          requiredMessage || config.messages.required,
+          requiredMessage || config.resources.validationMessages.required, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -831,7 +838,7 @@ export function validateEditorInputValue(
             title,
             ValidationMessage.Error,
             parameterizedString(
-              config.messages.minMaxCharacters,
+              config.resources.validationMessages.minMaxCharacters, // ✅ CAMINHO ATUALIZADO
               minCharacter,
               maxCharacter
             ),
@@ -846,8 +853,11 @@ export function validateEditorInputValue(
           title,
           ValidationMessage.Error,
           minCharacter > 1
-            ? parameterizedString(config.messages.minCharacters, minCharacter)
-            : config.messages.minCharacter,
+            ? parameterizedString(
+                config.resources.validationMessages.minCharacters,
+                minCharacter
+              ) // ✅ CAMINHO ATUALIZADO
+            : config.resources.validationMessages.minCharacter, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -858,8 +868,11 @@ export function validateEditorInputValue(
           title,
           ValidationMessage.Error,
           maxCharacter > 1
-            ? parameterizedString(config.messages.maxCharacters, maxCharacter)
-            : config.messages.maxCharacter,
+            ? parameterizedString(
+                config.resources.validationMessages.maxCharacters,
+                maxCharacter
+              ) // ✅ CAMINHO ATUALIZADO
+            : config.resources.validationMessages.maxCharacter, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -877,7 +890,7 @@ export function validateEditorInputValue(
               title,
               ValidationMessage.Error,
               parameterizedString(
-                config.messages.minMaxNumber,
+                config.resources.validationMessages.minMaxNumber, // ✅ CAMINHO ATUALIZADO
                 minNumber,
                 maxNumber
               ),
@@ -891,7 +904,10 @@ export function validateEditorInputValue(
             editorName,
             title,
             ValidationMessage.Error,
-            parameterizedString(config.messages.minNumber, minNumber),
+            parameterizedString(
+              config.resources.validationMessages.minNumber,
+              minNumber
+            ), // ✅ CAMINHO ATUALIZADO
             currentValue
           )
         );
@@ -901,7 +917,10 @@ export function validateEditorInputValue(
             editorName,
             title,
             ValidationMessage.Error,
-            parameterizedString(config.messages.maxNumber, maxNumber),
+            parameterizedString(
+              config.resources.validationMessages.maxNumber,
+              maxNumber
+            ), // ✅ CAMINHO ATUALIZADO
             currentValue
           )
         );
@@ -912,7 +931,7 @@ export function validateEditorInputValue(
           editorName,
           title,
           ValidationMessage.Error,
-          requiredMessage || config.messages.number,
+          requiredMessage || config.resources.validationMessages.number, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -930,7 +949,7 @@ export function validateEditorInputValue(
               title,
               ValidationMessage.Error,
               parameterizedString(
-                config.messages.minMaxNumber,
+                config.resources.validationMessages.minMaxNumber, // ✅ CAMINHO ATUALIZADO
                 minNumber,
                 maxNumber
               ),
@@ -944,7 +963,10 @@ export function validateEditorInputValue(
             editorName,
             title,
             ValidationMessage.Error,
-            parameterizedString(config.messages.minNumber, minNumber),
+            parameterizedString(
+              config.resources.validationMessages.minNumber,
+              minNumber
+            ), // ✅ CAMINHO ATUALIZADO
             currentValue
           )
         );
@@ -954,7 +976,10 @@ export function validateEditorInputValue(
             editorName,
             title,
             ValidationMessage.Error,
-            parameterizedString(config.messages.maxNumber, maxNumber),
+            parameterizedString(
+              config.resources.validationMessages.maxNumber,
+              maxNumber
+            ), // ✅ CAMINHO ATUALIZADO
             currentValue
           )
         );
@@ -965,7 +990,7 @@ export function validateEditorInputValue(
           editorName,
           title,
           ValidationMessage.Error,
-          requiredMessage || config.messages.number,
+          requiredMessage || config.resources.validationMessages.number, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -978,7 +1003,7 @@ export function validateEditorInputValue(
           editorName,
           title,
           ValidationMessage.Error,
-          config.messages.email,
+          config.resources.validationMessages.email, // ✅ CAMINHO ATUALIZADO
           currentValue
         )
       );
@@ -992,7 +1017,7 @@ export function validateEditorInputValue(
             title,
             ValidationMessage.Error,
             parameterizedString(
-              config.messages.totalFilesAllowedExceeded,
+              config.resources.validationMessages.totalFilesAllowedExceeded, // ✅ CAMINHO ATUALIZADO
               maxFiles
             ),
             currentValue
@@ -1008,7 +1033,7 @@ export function validateEditorInputValue(
               title,
               ValidationMessage.Error,
               parameterizedString(
-                config.messages.fileSizeExceededMaxAllowed,
+                config.resources.validationMessages.fileSizeExceededMaxAllowed, // ✅ CAMINHO ATUALIZADO
                 file.name,
                 bytesToHumanReadable(maxFileSize)
               ),

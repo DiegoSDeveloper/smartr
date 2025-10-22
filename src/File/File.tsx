@@ -28,9 +28,9 @@ export function File(props: FilePropTypes) {
   const {
     id,
     name,
-    placeholder = config.filePlaceholderText,
+    placeholder = config.behavior.file.filePlaceholderText,
     editorAttributes,
-    maxFilesPlaceholder = config.maxFilesPlaceholder,
+    maxFilesPlaceholder = config.behavior.file.maxFilesPlaceholder,
     fileUrlDownload,
     fileDownloadName,
     onDownloadFileClick,
@@ -48,12 +48,12 @@ export function File(props: FilePropTypes) {
 
   const finalInputRef = inputRef || inputUploadRef;
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = event.target.files;
     let fileNames;
     if (files.length > maxFilesPlaceholder) {
-      fileNames = `${files.length} ${config.texts.totalSelectedFiles}`;
+      fileNames = `${files.length} ${config.resources.fileTexts.totalSelectedFiles}`;
     } else {
       const fileNamesArray = [];
       for (let i = 0; i < files.length; i++) {
@@ -158,14 +158,18 @@ export function File(props: FilePropTypes) {
     onDeleteFileClick || fileName ? (
       <Tooltip
         position={TooltipPosition.Top}
-        text={config.texts.deleteFileTooltip}
+        text={config.resources.fileTexts.deleteTooltip}
       >
         <div
-          className={config.classes.inputGroupAppendFile}
+          className={config.components.editor.classes.inputGroupAppendFile}
           onClick={fileName ? handleDeleteClick : onDeleteFileClick}
         >
-          <span className={config.classes.inputGroupFileDeleteIcon}>
-            <i className={config.icons.delete}></i>
+          <span
+            className={
+              config.components.editor.classes.inputGroupFileDeleteIcon
+            }
+          >
+            <i className={config.resources.icons.delete}></i>
           </span>
         </div>
       </Tooltip>
@@ -174,14 +178,18 @@ export function File(props: FilePropTypes) {
     fileUrlDownload || onDownloadFileClick ? (
       <Tooltip
         position={TooltipPosition.Top}
-        text={config.texts.downloadFileTooltip}
+        text={config.resources.fileTexts.downloadTooltip}
       >
         <div
-          className={config.classes.inputGroupAppendFile}
+          className={config.components.editor.classes.inputGroupAppendFile}
           onClick={onDownloadFileClick ?? handleDownloadClick}
         >
-          <span className={config.classes.inputGroupFileDownloadIcon}>
-            <i className={config.icons.download}></i>
+          <span
+            className={
+              config.components.editor.classes.inputGroupFileDownloadIcon
+            }
+          >
+            <i className={config.resources.icons.download}></i>
           </span>
         </div>
       </Tooltip>
@@ -189,14 +197,16 @@ export function File(props: FilePropTypes) {
   const uploadIconComponent = (
     <Tooltip
       position={TooltipPosition.Top}
-      text={config.texts.uploadFileTooltip}
+      text={config.resources.fileTexts.uploadTooltip}
     >
       <div
-        className={config.classes.inputGroupAppendFile}
+        className={config.components.editor.classes.inputGroupAppendFile}
         onClick={handleUploadClick}
       >
-        <span className={config.classes.inputGroupFileUploadIcon}>
-          <i className={config.icons.upload}></i>
+        <span
+          className={config.components.editor.classes.inputGroupFileUploadIcon}
+        >
+          <i className={config.resources.icons.upload}></i>
         </span>
       </div>
     </Tooltip>
@@ -204,13 +214,13 @@ export function File(props: FilePropTypes) {
   const optionsGroup = React.createElement(
     "div",
     {
-      className: config.classes.inputGroup,
+      className: config.components.editor.classes.inputGroup,
     },
     input,
     deleteIconComponent,
     downloadIconComponent,
     uploadIconComponent,
-    inputUpload,
+    inputUpload
   );
 
   return optionsGroup;

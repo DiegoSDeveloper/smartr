@@ -122,22 +122,24 @@ export const Table = forwardRef<TableRef, TableProps>(
     ];
     const screenIdx = order.indexOf(screenSize);
 
-    const finalTimeZone = timeZone ?? config.table.timeZone;
-    const finalCulture = culture ?? config.table.culture;
+    const finalTimeZone = timeZone ?? config.components.table.behavior.timeZone;
+    const finalCulture = culture ?? config.components.table.behavior.culture;
     const finalNoRecordMessage =
-      noRecordMessage ?? config.messages.table.noRecordMessage;
-    const finalLoadingText = loadingText ?? config.messages.table.loadingText;
-
+      noRecordMessage ?? config.components.table.texts.noRecordMessage;
+    const finalLoadingText =
+      loadingText ?? config.components.table.texts.loadingText;
     const finalSortAscendingIcon =
       sortAscendingIcon ??
-      config.icons.table?.sortAscending ??
+      config.components.table.icons.sortAscending ??
       "fas fa-sort-up";
     const finalSortDescendingIcon =
       sortDescendingIcon ??
-      config.icons.table?.sortDescending ??
+      config.components.table.icons.sortDescending ??
       "fas fa-sort-down";
     const finalSortDefaultIcon =
-      sortDefaultIcon ?? config.icons.table?.sortDefault ?? "fas fa-sort";
+      sortDefaultIcon ??
+      config.components.table.icons.sortDefault ??
+      "fas fa-sort";
 
     // Determine data source and states
     const isManaged = enableDataManagement && onFetchData;
@@ -432,11 +434,11 @@ export const Table = forwardRef<TableRef, TableProps>(
       if (value !== undefined && value !== null) {
         if (column.sourceList && Array.isArray(column.sourceList)) {
           const sourceValueProperty =
-            column.sourceValueProperty ?? config.table.sourceValueProperty;
+            column.sourceValueProperty ??
+            config.components.table.behavior.sourceValueProperty;
           const sourceDescriptionProperty =
             column.sourceDescriptionProperty ??
-            config.table.sourceDescriptionProperty;
-
+            config.components.table.behavior.sourceDescriptionProperty;
           if (sourceValueProperty && sourceDescriptionProperty) {
             const foundItem = column.sourceList.find(
               (item) => item[sourceValueProperty] === value
@@ -447,11 +449,11 @@ export const Table = forwardRef<TableRef, TableProps>(
               if (column.displayBadge) {
                 const sourceBadgeProperty =
                   column.sourceBadgeProperty ??
-                  config.table.sourceBadgeProperty;
+                  config.components.table.behavior.sourceBadgeProperty;
                 if (sourceBadgeProperty) {
                   const badgeClasses = Util.mapToCssModules(
                     classNames(
-                      config.classes.table.badge,
+                      config.components.table.classes.badge,
                       foundItem[sourceBadgeProperty]
                     )
                   );

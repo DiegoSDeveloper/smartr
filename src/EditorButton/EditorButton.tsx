@@ -1,4 +1,3 @@
-
 import React from "react";
 import { mapToCssModules } from "../Utils/utils";
 import { classNames } from "../Utils/utils";
@@ -20,7 +19,7 @@ export function EditorButton(props: editorButtonPropTypes) {
   const config = useSmartConfig();
   const {
     className,
-    tag = config.editorButtonTag,
+    tag = config.tags.editorButtonTag,
     icon,
     text,
     tooltip,
@@ -29,7 +28,7 @@ export function EditorButton(props: editorButtonPropTypes) {
     ...attributes
   } = props;
   const classes = mapToCssModules(
-    classNames(config.classes.inputGroupButton, className)
+    classNames(config.components.editor.classes.inputGroupButton, className)
   );
 
   const innerContent = (
@@ -57,7 +56,7 @@ export function EditorButton(props: editorButtonPropTypes) {
   }
   return (
     <>
-      <div className={config.classes.inputGroupAppendButton}>
+      <div className={config.components.editor.classes.inputGroupAppendButton}>
         {content}
       </div>
     </>
