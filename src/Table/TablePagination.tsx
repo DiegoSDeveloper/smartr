@@ -1,8 +1,8 @@
+// TablePagination.tsx - PRODUCTION READY VERSION
 import React from "react";
 import { useSmartConfig } from "../hook/useSmartConfig";
 import { Tooltip } from "../Tooltip/Tooltip";
 import { TooltipPosition } from "../types";
-import styles from "./TablePagination.module.scss"; // ✅ CSS Module
 import { TablePaginationComponentProps } from "./types";
 
 export function TablePagination({
@@ -32,17 +32,10 @@ export function TablePagination({
     ...customTexts,
   };
 
-  // Get classes from config
+  // ✅ USA CLASSES DE table.pagination
+  const defaultClasses = config.classes.table.pagination;
   const classes = {
-    container: config.classes.table.container,
-    info: config.classes.table.info,
-    controls: config.classes.table.controls,
-    pagination: config.classes.table.pagination,
-    pageItem: config.classes.table.pageItem,
-    pageInfo: config.classes.table.pageInfo,
-    pageLink: config.classes.table.pageLink,
-    activePage: config.classes.table.activePage,
-    disabledPage: config.classes.table.disabledPage,
+    ...defaultClasses,
     ...customClasses,
   };
 
@@ -138,9 +131,9 @@ export function TablePagination({
           </li>
 
           {/* Current page indicator - BADGE ENTRE SETAS */}
-          <li className={`${classes.pageItem} ${styles.pageIndicatorBadge}`}>
+          <li className={`${classes.pageItem} ${classes.pageIndicatorBadge}`}>
             <span
-              className={`${classes.pageLink} ${classes.pageInfo} ${styles.pageInfo} bg-transparent border-0 text-dark fw-semibold`}
+              className={`${classes.pageLink} ${classes.pageInfo} bg-transparent border-0 text-dark fw-semibold`}
             >
               {texts.page} {safeCurrentPage} {texts.of} {safeTotalPages}
             </span>

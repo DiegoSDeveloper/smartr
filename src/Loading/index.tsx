@@ -1,7 +1,7 @@
 // SmartR/Loading/Loading.tsx
 import React from "react";
 import { useSmartConfig } from "../hook/useSmartConfig";
-import styles from "./Loading.module.scss";
+// ❌ REMOVE import de CSS
 
 interface LoadingProps {
   text?: string;
@@ -17,20 +17,15 @@ export const Loading: React.FC<LoadingProps> = ({
   const config = useSmartConfig();
   const loadingText = text || config.messages.table.loadingText;
 
+  const classes = config.classes.loading;
+
+  const sizeClass =
+    classes[`container${size.charAt(0).toUpperCase() + size.slice(1)}`];
+
   return (
-    <div
-      className={`
-        ${styles.smartLoading} 
-        ${
-          styles[`smartLoading${size.charAt(0).toUpperCase() + size.slice(1)}`]
-        } 
-        ${className}
-      `}
-    >
-      <div className={styles.smartLoadingSpinner}></div>
-      {loadingText && (
-        <div className={styles.smartLoadingText}>{loadingText}</div>
-      )}
+    <div className={`${classes.container} ${sizeClass} ${className}`}>
+      <div className={classes.spinner}></div>
+      {loadingText && <div className={classes.text}>{loadingText}</div>}
     </div>
   );
 };
