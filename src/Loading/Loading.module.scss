@@ -1,0 +1,23 @@
+.smartLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.smartLoadingSpinner {
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: smartLoadingSpin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes smartLoadingSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

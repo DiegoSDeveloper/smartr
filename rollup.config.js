@@ -37,8 +37,12 @@ export default {
       extensions: [".ts", ".tsx"],
     }),
     postcss({
-      extract: true,
+      extract: false, // ✅ Mude para FALSE - CSS embutido nos JS
       minimize: true,
+      modules: {
+        // ✅ Habilita CSS Modules
+        generateScopedName: "[name]__[local]--[hash:base64:5]",
+      },
       use: {
         sass: sass,
       },

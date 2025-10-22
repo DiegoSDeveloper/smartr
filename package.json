@@ -1,6 +1,6 @@
 {
   "name": "smartr-ui",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A comprehensive React components library with form controls, UI elements, and layout components",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -55,6 +55,7 @@
     "@types/node": "^24.9.1",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "postcss-modules": "^6.0.1",
     "rollup": "^3.0.0",
     "rollup-plugin-dts": "^5.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",

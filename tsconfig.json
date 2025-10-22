@@ -14,8 +14,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "declaration": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    // ✅ Adicione estas linhas para CSS Modules
+    "module": "ESNext",
   },
-  "include": ["src"],
+  "include": ["src", "src/**/*.d.ts"], // ✅ Inclui arquivos de tipos
   "exclude": ["node_modules", "dist"]
 }

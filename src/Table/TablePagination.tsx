@@ -1,9 +1,8 @@
-// TablePagination.tsx - PRODUCTION READY VERSION
 import React from "react";
 import { useSmartConfig } from "../hook/useSmartConfig";
 import { Tooltip } from "../Tooltip/Tooltip";
 import { TooltipPosition } from "../types";
-import "./TablePagination.scss";
+import styles from "./TablePagination.module.scss"; // ✅ CSS Module
 import { TablePaginationComponentProps } from "./types";
 
 export function TablePagination({
@@ -139,9 +138,9 @@ export function TablePagination({
           </li>
 
           {/* Current page indicator - BADGE ENTRE SETAS */}
-          <li className={`${classes.pageItem}  bg-light border mx-1 px-3`}>
+          <li className={`${classes.pageItem} ${styles.pageIndicatorBadge}`}>
             <span
-              className={`${classes.pageLink} ${classes.pageInfo} bg-transparent border-0 text-dark fw-semibold`}
+              className={`${classes.pageLink} ${classes.pageInfo} ${styles.pageInfo} bg-transparent border-0 text-dark fw-semibold`}
             >
               {texts.page} {safeCurrentPage} {texts.of} {safeTotalPages}
             </span>
