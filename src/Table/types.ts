@@ -150,6 +150,25 @@ export interface TableDataManagementProps {
   debounceTime?: number;
 }
 
+export interface TableGroupProps {
+  enableGrouping?: boolean;
+  groupBy?: string | string[];
+  groupHeaderRender?: (
+    groupValues: any[],
+    groupRecords: any[],
+    groupLevel: number
+  ) => React.ReactNode;
+  groupFooterRender?: (
+    groupValues: any[],
+    groupRecords: any[],
+    groupLevel: number
+  ) => React.ReactNode;
+  expandAllGroups?: boolean;
+  showGroupCount?: boolean;
+  collapsibleGroups?: boolean;
+  groupSeparator?: string;
+}
+
 export interface TableProps extends TableDataManagementProps {
   // Columns and structure
   columns: TableColumnProps[];
@@ -193,6 +212,9 @@ export interface TableProps extends TableDataManagementProps {
   sortAscendingIcon?: string;
   sortDescendingIcon?: string;
   sortDefaultIcon?: string;
+
+  // Grouping
+  grouping?: TableGroupProps;
 
   // Custom rendering
   rowFooterRender?: (record: any, rowIndex: number) => React.ReactNode;

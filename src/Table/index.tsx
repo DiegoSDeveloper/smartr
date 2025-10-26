@@ -40,6 +40,97 @@ const getDefaultViewMode = (defaultCardBelow: ScreenSize): TableViewMode => {
     : TableViewMode.TABLE;
 };
 
+// Helper function to process data for grouping
+const processDataForGrouping = (
+  data: any[],
+  groupFields: string[],
+  expandedGroups: Set<string>,
+  groupingConfig: any
+): any[] => {
+  if (!groupFields.length || data.length === 0) return data;
+
+  const result: any[] = [];
+  const groups = new Map();
+
+  // Group data by specified fields (mantém igual)
+  data.forEach((record) => {
+    let currentMap = groups;
+    groupFields.forEach((field, level) => {
+      const value = record[field];
+      const groupKey =
+        level === 0 ? value : `${Array.from(currentMap.keys())[0]}_${value}`;
+
+      if (!currentMap.has(groupKey)) {
+        currentMap.set(groupKey, {
+          records: [],
+          children: new Map(),
+          groupValue: value,
+          groupLevel: level,
+          groupValues: groupFields.slice(0, level + 1).map((f) => record[f]),
+        });
+      }
+
+      const group = currentMap.get(groupKey);
+      if (level === groupFields.length - 1) {
+        group.records.push(record);
+      } else {
+        currentMap = group.children;
+      }
+    });
+  });
+
+  // Flatten groups into result array
+  const flattenGroups = (map: Map<any, any>, parentKey: string = ""): void => {
+    map.forEach((group, key) => {
+      const fullKey = parentKey ? `${parentKey}_${key}` : key;
+
+      // CORREÇÃO: Lógica correta para determinar se o grupo está expandido
+      const isInitiallyExpanded = groupingConfig.expandAllGroups;
+      const wasManuallyCollapsed = expandedGroups.has(`collapsed_${fullKey}`);
+      const wasManuallyExpanded = expandedGroups.has(fullKey);
+
+      const isExpanded = wasManuallyExpanded
+        ? true
+        : wasManuallyCollapsed
+        ? false
+        : isInitiallyExpanded;
+
+      // Add group header
+      result.push({
+        __isGroupHeader: true,
+        __groupKey: fullKey,
+        __groupLevel: group.groupLevel,
+        __groupValues: group.groupValues,
+        __groupRecords: group.records,
+        __isExpanded: isExpanded,
+      });
+
+      // Add records if expanded
+      if (isExpanded) {
+        if (group.children.size > 0) {
+          flattenGroups(group.children, fullKey);
+        } else {
+          result.push(...group.records);
+        }
+      }
+
+      // Add group footer if defined
+      if (groupingConfig.groupFooterRender && group.records.length > 0) {
+        result.push({
+          __isGroupFooter: true,
+          __groupKey: fullKey,
+          __groupLevel: group.groupLevel,
+          __groupValues: group.groupValues,
+          __groupRecords: group.records,
+        });
+      }
+    });
+  };
+
+  flattenGroups(groups);
+  return result;
+};
+
 export const Table = forwardRef<TableRef, TableProps>(
   (
     {
@@ -84,6 +175,9 @@ export const Table = forwardRef<TableRef, TableProps>(
       onDataLoaded,
       onLoadingStateChange,
       onError,
+
+      // Grouping props
+      grouping,
     },
     ref
   ) => {
@@ -110,6 +204,36 @@ export const Table = forwardRef<TableRef, TableProps>(
     const [internalCurrentPage, setInternalCurrentPage] = useState(1);
     const [internalTotalRecords, setInternalTotalRecords] = useState(0);
     const [internalTotalPages, setInternalTotalPages] = useState(0);
+
+    // Grouping state
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+      new Set()
+    );
+    const [groupedData, setGroupedData] = useState<any[]>([]);
+
+    // Grouping configuration with safe defaults
+    const groupingConfig = grouping || {};
+    const {
+      enableGrouping = false,
+      groupBy = [],
+      expandAllGroups = false,
+      showGroupCount = true,
+      collapsibleGroups = true,
+      groupSeparator = " > ",
+      groupHeaderRender,
+      groupFooterRender,
+    } = groupingConfig;
+
+    const tableTexts = config.components.table.texts ?? ({} as any);
+    const texts = {
+      selectAllAriaLabel: tableTexts.selectAllAriaLabel,
+      selectRowAriaLabel: tableTexts.selectRowAriaLabel,
+      groupCountSingular: tableTexts.groupCountSingular,
+      groupCountPlural: tableTexts.groupCountPlural,
+      groupHeaderCountFormat: tableTexts.groupHeaderCountFormat,
+      groupFooterText: tableTexts.groupFooterText,
+      exportNoRowsWarning: tableTexts.exportNoRowsWarning,
+    };
 
     const screenSize = Util.getScreenSize();
     const order: ScreenSize[] = [
@@ -158,6 +282,23 @@ export const Table = forwardRef<TableRef, TableProps>(
       }
     }, [isManaged, autoLoad, internalCurrentPage]);
 
+    // Process data for grouping
+    useEffect(() => {
+      if (!enableGrouping || !groupBy || displayData.length === 0) {
+        setGroupedData(displayData);
+        return;
+      }
+
+      const groupFields = Array.isArray(groupBy) ? groupBy : [groupBy];
+      const processedData = processDataForGrouping(
+        displayData,
+        groupFields,
+        expandedGroups,
+        groupingConfig
+      );
+      setGroupedData(processedData);
+    }, [displayData, enableGrouping, groupBy, expandedGroups, groupingConfig]);
+
     const fetchData = async (page: number) => {
       if (!onFetchData) return;
 
@@ -197,6 +338,32 @@ export const Table = forwardRef<TableRef, TableProps>(
       } else {
         onPageChange?.(page);
       }
+    };
+
+    // Group toggle handler
+    const handleGroupToggle = (groupKey: string) => {
+      if (!collapsibleGroups) return;
+
+      setExpandedGroups((prev) => {
+        const newSet = new Set(prev);
+
+        // Se o grupo está atualmente expandido (ou está no estado inicial expandido)
+        const isCurrentlyExpanded =
+          newSet.has(groupKey) ||
+          (expandAllGroups && !newSet.has(`collapsed_${groupKey}`));
+
+        if (isCurrentlyExpanded) {
+          // Minimizar: adiciona uma marcação especial para grupos que foram minimizados
+          newSet.delete(groupKey);
+          newSet.add(`collapsed_${groupKey}`);
+        } else {
+          // Expandir: remove a marcação de minimizado
+          newSet.add(groupKey);
+          newSet.delete(`collapsed_${groupKey}`);
+        }
+
+        return newSet;
+      });
     };
 
     // Filter visible columns based on responsive rules
@@ -242,15 +409,19 @@ export const Table = forwardRef<TableRef, TableProps>(
         }
       },
       exportData: (format: "csv" | "excel" | "pdf") => {
-        // Get rows to be exported
+        // Get rows to be exported (exclude group headers/footers)
+        const rowsToExport = displayData.filter(
+          (record) => !record.__isGroupHeader && !record.__isGroupFooter
+        );
+
         const rows =
           selection !== SelectionType.CHECKBOX &&
           selection !== SelectionType.MULTIPLE
-            ? displayData
+            ? rowsToExport
             : selectedRows.map((index) => displayData[index]);
 
         if (rows.length === 0) {
-          console.warn("No rows selected for export.");
+          console.warn(texts.exportNoRowsWarning);
           return;
         }
 
@@ -329,7 +500,7 @@ export const Table = forwardRef<TableRef, TableProps>(
     };
 
     const generateSortingIndicator = (column: TableColumnProps) => {
-      // ✅ Só mostra indicador se a coluna for ordenável
+      // ✅ Only show indicator if column is sortable
       if (column.enableSort !== true) {
         return finalSortDefaultIcon ? (
           <i
@@ -398,6 +569,9 @@ export const Table = forwardRef<TableRef, TableProps>(
       return 0;
     });
 
+    // Determine which data to render
+    const dataToRender = enableGrouping ? groupedData : sortedData;
+
     const renderCellValue = (
       record,
       column: TableColumnProps,
@@ -405,6 +579,11 @@ export const Table = forwardRef<TableRef, TableProps>(
       parent: any = null,
       parentRow?: number
     ) => {
+      // Skip rendering for group headers/footers
+      if (record.__isGroupHeader || record.__isGroupFooter) {
+        return null;
+      }
+
       let value = Util.getColumnValue(column, record);
       if (
         column.hideMinOrDefaultValue &&
@@ -567,6 +746,11 @@ export const Table = forwardRef<TableRef, TableProps>(
     };
 
     const renderCellValueForExport = (record, column: TableColumnProps) => {
+      // Skip group headers/footers in export
+      if (record.__isGroupHeader || record.__isGroupFooter) {
+        return "";
+      }
+
       let value = Util.getColumnValue(column, record);
 
       if (value !== undefined && value !== null) {
@@ -711,7 +895,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                     <input
                       type="checkbox"
                       onChange={handleSelectAll}
-                      aria-label="Select All"
+                      aria-label={texts.selectAllAriaLabel}
                     />
                   )}
                 </th>
@@ -793,12 +977,128 @@ export const Table = forwardRef<TableRef, TableProps>(
         />
       );
     };
+
+    // Render group header for table view
+    const renderGroupHeader = (record: any, rowIndex: number) => {
+      const groupLabel = record.__groupValues.join(groupSeparator);
+      const recordCount = record.__groupRecords.length;
+      const isExpanded = record.__isExpanded;
+
+      const defaultContent = (
+        <div
+          className={classNames(
+            "group-header",
+            `group-level-${record.__groupLevel}`,
+            {
+              "cursor-pointer": collapsibleGroups,
+              "group-expanded": isExpanded,
+              "group-collapsed": !isExpanded,
+            }
+          )}
+          style={{
+            paddingLeft: `${record.__groupLevel * 20}px`,
+            backgroundColor: `hsl(${210 - record.__groupLevel * 10}, 80%, 95%)`,
+          }}
+          onClick={() =>
+            collapsibleGroups && handleGroupToggle(record.__groupKey)
+          }
+        >
+          <div className="d-flex align-items-center">
+            {collapsibleGroups && (
+              <i
+                className={classNames(
+                  "fas me-2 transition-all",
+                  isExpanded ? "fa-chevron-down" : "fa-chevron-right"
+                )}
+                style={{ fontSize: "0.8rem" }}
+              />
+            )}
+            <strong>
+              {groupLabel}
+              {showGroupCount &&
+                texts.groupHeaderCountFormat
+                  .replace("{count}", String(recordCount))
+                  .replace(
+                    "{label}",
+                    recordCount === 1
+                      ? texts.groupCountSingular
+                      : texts.groupCountPlural
+                  )}
+            </strong>
+          </div>
+        </div>
+      );
+
+      return (
+        <tr key={`group-header-${rowIndex}`} className="group-header-row">
+          <td
+            colSpan={
+              visibleColumns.length +
+              (selection === SelectionType.CHECKBOX ? 1 : 0)
+            }
+            className="group-header-cell p-0"
+          >
+            {groupHeaderRender
+              ? groupHeaderRender(
+                  record.__groupValues,
+                  record.__groupRecords,
+                  record.__groupLevel
+                )
+              : defaultContent}
+          </td>
+        </tr>
+      );
+    };
+
+    // Render group footer for table view
+    const renderGroupFooter = (record: any, rowIndex: number) => {
+      const defaultContent = (
+        <div
+          className="group-footer"
+          style={{
+            paddingLeft: `${record.__groupLevel * 20}px`,
+            backgroundColor: `hsl(${210 - record.__groupLevel * 10}, 60%, 97%)`,
+          }}
+        >
+          <em>
+            {texts.groupFooterText.replace(
+              "{count}",
+              String(record.__groupRecords.length)
+            )}
+          </em>
+        </div>
+      );
+
+      return (
+        <tr key={`group-footer-${rowIndex}`} className="group-footer-row">
+          <td
+            colSpan={
+              visibleColumns.length +
+              (selection === SelectionType.CHECKBOX ? 1 : 0)
+            }
+            className="group-footer-cell p-0"
+          >
+            {groupFooterRender
+              ? groupFooterRender(
+                  record.__groupValues,
+                  record.__groupRecords,
+                  record.__groupLevel
+                )
+              : defaultContent}
+          </td>
+        </tr>
+      );
+    };
+
     const renderTable = (data) => {
       const handleRowDoubleClick = (
         event: React.MouseEvent<HTMLTableRowElement>,
         rowData: any,
         rowIndex: number
       ) => {
+        // Skip group headers/footers
+        if (rowData.__isGroupHeader || rowData.__isGroupFooter) return;
+
         if (onDoubleClick) {
           onDoubleClick(rowData, rowIndex);
         }
@@ -820,6 +1120,9 @@ export const Table = forwardRef<TableRef, TableProps>(
         rowData: any,
         column: TableColumnProps
       ) => {
+        // Skip group headers/footers
+        if (rowData.__isGroupHeader || rowData.__isGroupFooter) return;
+
         if (column.onDoubleClick) {
           column.onDoubleClick(
             rowIndex,
@@ -831,6 +1134,9 @@ export const Table = forwardRef<TableRef, TableProps>(
       };
 
       const resolveRowClassName = (record: any) => {
+        if (record.__isGroupHeader) return "group-header-row";
+        if (record.__isGroupFooter) return "group-footer-row";
+
         if (!rowClassName) return "";
         return typeof rowClassName === "function"
           ? rowClassName(record)
@@ -843,6 +1149,7 @@ export const Table = forwardRef<TableRef, TableProps>(
           ? rowDetailClassName(detail, parent)
           : rowDetailClassName;
       };
+
       return (
         <>
           {data.length > 0 ? (
@@ -853,207 +1160,242 @@ export const Table = forwardRef<TableRef, TableProps>(
                 <tbody>
                   {data.map((record, rowIndex) => (
                     <Fragment key={`fragement-${rowIndex}`}>
-                      <tr
-                        key={`tr-${rowIndex}`}
-                        role="row"
-                        className={classNames(resolveRowClassName(record))}
-                        onDoubleClick={(event) =>
-                          handleRowDoubleClick(event, record, rowIndex)
-                        }
-                      >
-                        {selection === SelectionType.CHECKBOX && (
-                          <td role="cell" className="cell-checkbox text-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedRows.includes(rowIndex)}
-                              onChange={(event) =>
-                                handleSelect(event, rowIndex)
-                              }
-                              aria-label="Select"
-                            />
-                          </td>
-                        )}
-                        {visibleColumns.map((column, colIndex) => (
-                          <td
-                            key={`td-${colIndex}`}
-                            role="cell"
-                            className={classNames(
-                              column.contentClassName,
-                              Util.getAlignClassName(column.contentAlign)
-                            )}
-                            style={{
-                              ...((!showHeader ||
-                                (showHeader &&
-                                  uniqueHeaderSingleRecordTable)) &&
-                              column.width
-                                ? { width: column.width }
-                                : {}),
-                            }}
+                      {/* Group Header */}
+                      {record.__isGroupHeader &&
+                        renderGroupHeader(record, rowIndex)}
+
+                      {/* Group Footer */}
+                      {record.__isGroupFooter &&
+                        renderGroupFooter(record, rowIndex)}
+
+                      {/* Regular Data Row */}
+                      {!record.__isGroupHeader && !record.__isGroupFooter && (
+                        <>
+                          <tr
+                            key={`tr-${rowIndex}`}
+                            role="row"
+                            className={classNames(resolveRowClassName(record))}
                             onDoubleClick={(event) =>
-                              handleCellDoubleClick(
-                                rowIndex,
-                                colIndex,
-                                record,
-                                column
-                              )
+                              handleRowDoubleClick(event, record, rowIndex)
                             }
                           >
-                            {renderCellValue(record, column, rowIndex)}
-                          </td>
-                        ))}
-                      </tr>
-
-                      {/* ➜ main row footer */}
-                      {typeof rowFooterRender === "function" && (
-                        <tr
-                          key={`tr-footer-${rowIndex}`}
-                          className="tr-row-footer"
-                        >
-                          <td
-                            role="cell"
-                            className="td-row-footer"
-                            colSpan={
-                              (selection === SelectionType.CHECKBOX ? 1 : 0) +
-                              visibleColumns.length
-                            }
-                          >
-                            {rowFooterRender(record, rowIndex)}
-                          </td>
-                        </tr>
-                      )}
-
-                      {columnsDetail && columnsDetail.length > 0 && (
-                        <tr
-                          key={`tr-detail-${rowIndex}`}
-                          role="row"
-                          className="tr-detail"
-                        >
-                          <td
-                            colSpan={
-                              visibleColumns.length +
-                              (selection === SelectionType.CHECKBOX ? 1 : 0)
-                            }
-                          >
-                            <table role="table" className={classesDetail}>
-                              {showDetailHeader && (
-                                <thead className="table-light table-nowrap">
-                                  <tr key={`tr-detail-${rowIndex}`} role="row">
-                                    {columnsDetail.map(
-                                      (columnDetail, index) => (
-                                        <th
-                                          key={`td-detail-${index}`}
-                                          role="columnheader"
-                                          className={classNames(
-                                            columnDetail.headerClassName,
-                                            Util.getAlignClassName(
-                                              columnDetail.headerAlign
-                                            ),
-                                            {
-                                              "header-filter":
-                                                !columnDetail.disableFilters,
-                                            }
-                                          )}
-                                          style={{
-                                            ...(columnDetail.width
-                                              ? { width: columnDetail.width }
-                                              : {}),
-                                          }}
-                                          onClick={() =>
-                                            handleSort(columnDetail)
-                                          }
-                                        >
-                                          {columnDetail.header}
-                                          {generateSortingIndicator(
-                                            columnDetail
-                                          )}
-                                        </th>
+                            {selection === SelectionType.CHECKBOX && (
+                              <td
+                                role="cell"
+                                className="cell-checkbox text-center"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRows.includes(
+                                    displayData.findIndex(
+                                      (item) => item === record
+                                    )
+                                  )}
+                                  onChange={(event) =>
+                                    handleSelect(
+                                      event,
+                                      displayData.findIndex(
+                                        (item) => item === record
                                       )
-                                    )}
-                                  </tr>
-                                </thead>
-                              )}
+                                    )
+                                  }
+                                  aria-label={texts.selectRowAriaLabel}
+                                />
+                              </td>
+                            )}
+                            {visibleColumns.map((column, colIndex) => (
+                              <td
+                                key={`td-${colIndex}`}
+                                role="cell"
+                                className={classNames(
+                                  column.contentClassName,
+                                  Util.getAlignClassName(column.contentAlign)
+                                )}
+                                style={{
+                                  ...((!showHeader ||
+                                    (showHeader &&
+                                      uniqueHeaderSingleRecordTable)) &&
+                                  column.width
+                                    ? { width: column.width }
+                                    : {}),
+                                }}
+                                onDoubleClick={(event) =>
+                                  handleCellDoubleClick(
+                                    rowIndex,
+                                    colIndex,
+                                    record,
+                                    column
+                                  )
+                                }
+                              >
+                                {renderCellValue(record, column, rowIndex)}
+                              </td>
+                            ))}
+                          </tr>
 
-                              <tbody>
-                                {record[dataDetailProperty].map(
-                                  (recordDetail, rowDetailIndex) => (
-                                    <Fragment key={rowDetailIndex}>
+                          {/* ➜ main row footer */}
+                          {typeof rowFooterRender === "function" && (
+                            <tr
+                              key={`tr-footer-${rowIndex}`}
+                              className="tr-row-footer"
+                            >
+                              <td
+                                role="cell"
+                                className="td-row-footer"
+                                colSpan={
+                                  (selection === SelectionType.CHECKBOX
+                                    ? 1
+                                    : 0) + visibleColumns.length
+                                }
+                              >
+                                {rowFooterRender(record, rowIndex)}
+                              </td>
+                            </tr>
+                          )}
+
+                          {columnsDetail && columnsDetail.length > 0 && (
+                            <tr
+                              key={`tr-detail-${rowIndex}`}
+                              role="row"
+                              className="tr-detail"
+                            >
+                              <td
+                                colSpan={
+                                  visibleColumns.length +
+                                  (selection === SelectionType.CHECKBOX ? 1 : 0)
+                                }
+                              >
+                                <table role="table" className={classesDetail}>
+                                  {showDetailHeader && (
+                                    <thead className="table-light table-nowrap">
                                       <tr
+                                        key={`tr-detail-${rowIndex}`}
                                         role="row"
-                                        className={classNames(
-                                          resolveDetailRowClassName(
-                                            recordDetail,
-                                            record
-                                          )
-                                        )}
-                                        onDoubleClick={(event) =>
-                                          handleRowDoubleClickDetail(
-                                            event,
-                                            recordDetail,
-                                            record,
-                                            rowDetailIndex,
-                                            rowIndex
-                                          )
-                                        }
                                       >
                                         {columnsDetail.map(
-                                          (columnDetail, colDetailIndex) => (
-                                            <td
-                                              key={colDetailIndex}
-                                              role="cell"
+                                          (columnDetail, index) => (
+                                            <th
+                                              key={`td-detail-${index}`}
+                                              role="columnheader"
                                               className={classNames(
-                                                columnDetail.contentClassName,
+                                                columnDetail.headerClassName,
                                                 Util.getAlignClassName(
-                                                  columnDetail.contentAlign
-                                                )
+                                                  columnDetail.headerAlign
+                                                ),
+                                                {
+                                                  "header-filter":
+                                                    !columnDetail.disableFilters,
+                                                }
                                               )}
                                               style={{
-                                                ...((!showHeader ||
-                                                  (showHeader &&
-                                                    uniqueHeaderSingleRecordTable)) &&
-                                                columnDetail.width
+                                                ...(columnDetail.width
                                                   ? {
                                                       width: columnDetail.width,
                                                     }
                                                   : {}),
                                               }}
+                                              onClick={() =>
+                                                handleSort(columnDetail)
+                                              }
                                             >
-                                              {renderCellValue(
-                                                recordDetail,
-                                                columnDetail,
-                                                rowDetailIndex,
-                                                record,
-                                                rowIndex
+                                              {columnDetail.header}
+                                              {generateSortingIndicator(
+                                                columnDetail
                                               )}
-                                            </td>
+                                            </th>
                                           )
                                         )}
                                       </tr>
+                                    </thead>
+                                  )}
 
-                                      {/* ➜ detail row footer */}
-                                      {typeof rowDetailFooterRender ===
-                                        "function" && (
-                                        <tr className="tr-row-detail-footer">
-                                          <td
-                                            role="cell"
-                                            className="td-row-detail-footer"
-                                            colSpan={columnsDetail.length}
-                                          >
-                                            {rowDetailFooterRender(
-                                              recordDetail,
-                                              record,
-                                              rowDetailIndex,
-                                              rowIndex
+                                  <tbody>
+                                    {record[dataDetailProperty].map(
+                                      (recordDetail, rowDetailIndex) => (
+                                        <Fragment key={rowDetailIndex}>
+                                          <tr
+                                            role="row"
+                                            className={classNames(
+                                              resolveDetailRowClassName(
+                                                recordDetail,
+                                                record
+                                              )
                                             )}
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </Fragment>
-                                  )
-                                )}
-                              </tbody>
-                            </table>
-                          </td>
-                        </tr>
+                                            onDoubleClick={(event) =>
+                                              handleRowDoubleClickDetail(
+                                                event,
+                                                recordDetail,
+                                                record,
+                                                rowDetailIndex,
+                                                rowIndex
+                                              )
+                                            }
+                                          >
+                                            {columnsDetail.map(
+                                              (
+                                                columnDetail,
+                                                colDetailIndex
+                                              ) => (
+                                                <td
+                                                  key={colDetailIndex}
+                                                  role="cell"
+                                                  className={classNames(
+                                                    columnDetail.contentClassName,
+                                                    Util.getAlignClassName(
+                                                      columnDetail.contentAlign
+                                                    )
+                                                  )}
+                                                  style={{
+                                                    ...((!showHeader ||
+                                                      (showHeader &&
+                                                        uniqueHeaderSingleRecordTable)) &&
+                                                    columnDetail.width
+                                                      ? {
+                                                          width:
+                                                            columnDetail.width,
+                                                        }
+                                                      : {}),
+                                                  }}
+                                                >
+                                                  {renderCellValue(
+                                                    recordDetail,
+                                                    columnDetail,
+                                                    rowDetailIndex,
+                                                    record,
+                                                    rowIndex
+                                                  )}
+                                                </td>
+                                              )
+                                            )}
+                                          </tr>
+
+                                          {/* ➜ detail row footer */}
+                                          {typeof rowDetailFooterRender ===
+                                            "function" && (
+                                            <tr className="tr-row-detail-footer">
+                                              <td
+                                                role="cell"
+                                                className="td-row-detail-footer"
+                                                colSpan={columnsDetail.length}
+                                              >
+                                                {rowDetailFooterRender(
+                                                  recordDetail,
+                                                  record,
+                                                  rowDetailIndex,
+                                                  rowIndex
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </Fragment>
+                                      )
+                                    )}
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       )}
                     </Fragment>
                   ))}
@@ -1089,6 +1431,9 @@ export const Table = forwardRef<TableRef, TableProps>(
       });
 
       const resolveRowClassName = (record: any) => {
+        if (record.__isGroupHeader) return "group-header-card";
+        if (record.__isGroupFooter) return "group-footer-card";
+
         if (!rowClassName) return "";
         return typeof rowClassName === "function"
           ? rowClassName(record)
@@ -1116,170 +1461,246 @@ export const Table = forwardRef<TableRef, TableProps>(
           {data.map((record, rowIndex) => (
             <div
               key={rowIndex}
-              /* <-- apply "tr" main class to card wrapper */
               className={classNames(
                 "card mb-3 p-3 shadow-sm",
                 resolveRowClassName(record)
               )}
-              onDoubleClick={(e) => onDoubleClick?.(record, rowIndex)}
-            >
-              {/* Main record fields */}
-              {visibleColumns.map((column, colIndex) => {
-                // content already processed (includes hideMinOrDefaultValue, mask, format, etc.)
-                const cellContent = renderCellValue(record, column, rowIndex);
-
-                const coi = column.cardOnlyIfValue;
-
-                if (
-                  (typeof coi === "function" && !coi(record)) || // function: decides based on record
-                  (coi === true && !hasValue(record, column)) // boolean true: only renders if has value
-                ) {
-                  return null;
+              onDoubleClick={(e) => {
+                if (!record.__isGroupHeader && !record.__isGroupFooter) {
+                  onDoubleClick?.(record, rowIndex);
                 }
-                const showHeader = column.cardHeaderVisible !== false;
-
-                return (
-                  <div key={colIndex} className="row gx-2 border-bottom py-2">
-                    {/* Label */}
-                    {showHeader && (
-                      <div
+              }}
+            >
+              {/* Group Header in Card View */}
+              {record.__isGroupHeader && (
+                <div
+                  className={classNames("group-header-card", {
+                    "cursor-pointer": collapsibleGroups,
+                  })}
+                  style={{
+                    paddingLeft: `${record.__groupLevel * 15}px`,
+                    backgroundColor: `hsl(${
+                      210 - record.__groupLevel * 10
+                    }, 80%, 95%)`,
+                    margin: "-1rem -1rem 1rem -1rem",
+                    padding: "1rem",
+                    borderBottom: "1px solid #dee2e6",
+                  }}
+                  onClick={() =>
+                    collapsibleGroups && handleGroupToggle(record.__groupKey)
+                  }
+                >
+                  <div className="d-flex align-items-center">
+                    {collapsibleGroups && (
+                      <i
                         className={classNames(
-                          "col-4",
-                          column.headerClassName,
-                          Util.getAlignClassName(column.headerAlignCard)
+                          "fas me-2 transition-all",
+                          record.__isExpanded
+                            ? "fa-chevron-down"
+                            : "fa-chevron-right"
                         )}
-                      >
-                        <strong>{column.header}</strong>
-                      </div>
+                        style={{ fontSize: "0.8rem" }}
+                      />
                     )}
-
-                    {/* Value */}
-                    <div
-                      className={classNames(
-                        showHeader ? "col-8" : "col-12",
-                        column.contentClassName,
-                        Util.getAlignClassName(
-                          column.contentAlignCard,
-                          AlignType.END
-                        )
-                      )}
-                    >
-                      {cellContent}
-                    </div>
+                    <strong>
+                      {record.__groupValues.join(groupSeparator)}
+                      {showGroupCount &&
+                        ` (${record.__groupRecords.length} registro${
+                          record.__groupRecords.length !== 1 ? "s" : ""
+                        })`}
+                    </strong>
                   </div>
-                );
-              })}
-
-              {/* ➜ card footer (main row) */}
-              {typeof rowFooterRender === "function" && (
-                <div className="card-row-footer pt-2">
-                  {rowFooterRender(record, rowIndex)}
                 </div>
               )}
 
-              {/* Details as nested cards */}
-              {columnsDetail &&
-                columnsDetail.length > 0 &&
-                dataDetailProperty &&
-                Array.isArray(record[dataDetailProperty]) &&
-                record[dataDetailProperty].length > 0 && (
-                  <div className="mt-3">
-                    {record[dataDetailProperty].map(
-                      (recordDetail: any, rowDetailIndex: number) => (
+              {/* Group Footer in Card View */}
+              {record.__isGroupFooter && (
+                <div
+                  className="group-footer-card"
+                  style={{
+                    paddingLeft: `${record.__groupLevel * 15}px`,
+                    backgroundColor: `hsl(${
+                      210 - record.__groupLevel * 10
+                    }, 60%, 97%)`,
+                    margin: "1rem -1rem -1rem -1rem",
+                    padding: "1rem",
+                    borderTop: "1px solid #dee2e6",
+                  }}
+                >
+                  <em>
+                    Total do grupo: {record.__groupRecords.length} registros
+                  </em>
+                </div>
+              )}
+
+              {/* Regular Card Content */}
+              {!record.__isGroupHeader && !record.__isGroupFooter && (
+                <>
+                  {/* Main record fields */}
+                  {visibleColumns.map((column, colIndex) => {
+                    const cellContent = renderCellValue(
+                      record,
+                      column,
+                      rowIndex
+                    );
+
+                    const coi = column.cardOnlyIfValue;
+
+                    if (
+                      (typeof coi === "function" && !coi(record)) || // function: decides based on record
+                      (coi === true && !hasValue(record, column)) // boolean true: only renders if has value
+                    ) {
+                      return null;
+                    }
+                    const showHeader = column.cardHeaderVisible !== false;
+
+                    return (
+                      <div
+                        key={colIndex}
+                        className="row gx-2 border-bottom py-2"
+                      >
+                        {/* Label */}
+                        {showHeader && (
+                          <div
+                            className={classNames(
+                              "col-4",
+                              column.headerClassName,
+                              Util.getAlignClassName(column.headerAlignCard)
+                            )}
+                          >
+                            <strong>{column.header}</strong>
+                          </div>
+                        )}
+
+                        {/* Value */}
                         <div
-                          key={rowDetailIndex}
                           className={classNames(
-                            "card mb-2 p-2 bg-light-subtle",
-                            resolveDetailRowClassName(recordDetail, record)
-                          )}
-                          onDoubleClick={() =>
-                            onDoubleClickDetail?.(
-                              recordDetail,
-                              record,
-                              rowDetailIndex,
-                              rowIndex
+                            showHeader ? "col-8" : "col-12",
+                            column.contentClassName,
+                            Util.getAlignClassName(
+                              column.contentAlignCard,
+                              AlignType.END
                             )
-                          }
-                        >
-                          {visibleDetailColumns.map(
-                            (columnDetail, colDetailIndex) => {
-                              const cellDetail = renderCellValue(
-                                recordDetail,
-                                columnDetail,
-                                rowDetailIndex,
-                                record,
-                                rowIndex
-                              );
-
-                              const coi = columnDetail.cardOnlyIfValue;
-
-                              if (
-                                (typeof coi === "function" &&
-                                  !coi(recordDetail)) || // function: decides based on record
-                                (coi === true &&
-                                  !hasValue(recordDetail, columnDetail)) // boolean true: only renders if has value
-                              ) {
-                                return null;
-                              }
-
-                              // in CARD, label depends only on cardHeaderVisible
-                              const showHeaderDetail =
-                                columnDetail.cardHeaderVisible !== false;
-
-                              return (
-                                <div
-                                  key={colDetailIndex}
-                                  className="row gx-2 border-bottom py-2"
-                                >
-                                  {showHeaderDetail && (
-                                    <div
-                                      className={classNames(
-                                        "col-4",
-                                        columnDetail.headerClassName,
-                                        Util.getAlignClassName(
-                                          columnDetail.headerAlignCard ??
-                                            columnDetail.headerAlign
-                                        )
-                                      )}
-                                    >
-                                      <strong>{columnDetail.header}</strong>
-                                    </div>
-                                  )}
-
-                                  <div
-                                    className={classNames(
-                                      showHeaderDetail ? "col-8" : "col-12",
-                                      columnDetail.contentClassName,
-                                      Util.getAlignClassName(
-                                        columnDetail.contentAlignCard ??
-                                          columnDetail.contentAlign,
-                                        AlignType.END
-                                      )
-                                    )}
-                                  >
-                                    {cellDetail}
-                                  </div>
-                                </div>
-                              );
-                            }
                           )}
+                        >
+                          {cellContent}
+                        </div>
+                      </div>
+                    );
+                  })}
 
-                          {/* ➜ detail card footer */}
-                          {typeof rowDetailFooterRender === "function" && (
-                            <div className="card-row-detail-footer pt-2">
-                              {rowDetailFooterRender(
-                                recordDetail,
-                                record,
-                                rowDetailIndex,
-                                rowIndex
+                  {/* ➜ card footer (main row) */}
+                  {typeof rowFooterRender === "function" && (
+                    <div className="card-row-footer pt-2">
+                      {rowFooterRender(record, rowIndex)}
+                    </div>
+                  )}
+
+                  {/* Details as nested cards */}
+                  {columnsDetail &&
+                    columnsDetail.length > 0 &&
+                    dataDetailProperty &&
+                    Array.isArray(record[dataDetailProperty]) &&
+                    record[dataDetailProperty].length > 0 && (
+                      <div className="mt-3">
+                        {record[dataDetailProperty].map(
+                          (recordDetail: any, rowDetailIndex: number) => (
+                            <div
+                              key={rowDetailIndex}
+                              className={classNames(
+                                "card mb-2 p-2 bg-light-subtle",
+                                resolveDetailRowClassName(recordDetail, record)
+                              )}
+                              onDoubleClick={() =>
+                                onDoubleClickDetail?.(
+                                  recordDetail,
+                                  record,
+                                  rowDetailIndex,
+                                  rowIndex
+                                )
+                              }
+                            >
+                              {visibleDetailColumns.map(
+                                (columnDetail, colDetailIndex) => {
+                                  const cellDetail = renderCellValue(
+                                    recordDetail,
+                                    columnDetail,
+                                    rowDetailIndex,
+                                    record,
+                                    rowIndex
+                                  );
+
+                                  const coi = columnDetail.cardOnlyIfValue;
+
+                                  if (
+                                    (typeof coi === "function" &&
+                                      !coi(recordDetail)) || // function: decides based on record
+                                    (coi === true &&
+                                      !hasValue(recordDetail, columnDetail)) // boolean true: only renders if has value
+                                  ) {
+                                    return null;
+                                  }
+
+                                  // in CARD, label depends only on cardHeaderVisible
+                                  const showHeaderDetail =
+                                    columnDetail.cardHeaderVisible !== false;
+
+                                  return (
+                                    <div
+                                      key={colDetailIndex}
+                                      className="row gx-2 border-bottom py-2"
+                                    >
+                                      {showHeaderDetail && (
+                                        <div
+                                          className={classNames(
+                                            "col-4",
+                                            columnDetail.headerClassName,
+                                            Util.getAlignClassName(
+                                              columnDetail.headerAlignCard ??
+                                                columnDetail.headerAlign
+                                            )
+                                          )}
+                                        >
+                                          <strong>{columnDetail.header}</strong>
+                                        </div>
+                                      )}
+
+                                      <div
+                                        className={classNames(
+                                          showHeaderDetail ? "col-8" : "col-12",
+                                          columnDetail.contentClassName,
+                                          Util.getAlignClassName(
+                                            columnDetail.contentAlignCard ??
+                                              columnDetail.contentAlign,
+                                            AlignType.END
+                                          )
+                                        )}
+                                      >
+                                        {cellDetail}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )}
+
+                              {/* ➜ detail card footer */}
+                              {typeof rowDetailFooterRender === "function" && (
+                                <div className="card-row-detail-footer pt-2">
+                                  {rowDetailFooterRender(
+                                    recordDetail,
+                                    record,
+                                    rowDetailIndex,
+                                    rowIndex
+                                  )}
+                                </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                      )
+                          )
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -1294,9 +1715,6 @@ export const Table = forwardRef<TableRef, TableProps>(
       return <Loading text={finalLoadingText} />;
     }
 
-    // No Table/index.tsx, MODIFIQUE o return final:
-
-    // Table/index.tsx - RETURN SECTION ONLY
     return (
       <div className="smart-table-container">
         {/* Top pagination */}
@@ -1305,13 +1723,13 @@ export const Table = forwardRef<TableRef, TableProps>(
 
         {/* Main table content */}
         {!singleRecordTable ? (
-          <Fragment>{renderContent(sortedData)}</Fragment>
+          <Fragment>{renderContent(dataToRender)}</Fragment>
         ) : (
           <Fragment>
             {uniqueHeaderSingleRecordTable &&
               viewMode === TableViewMode.TABLE &&
               renderTableHeader()}
-            {sortedData.map((record, index) => (
+            {dataToRender.map((record, index) => (
               <Fragment key={`fra-${index}`}>
                 {renderContent([record])}
               </Fragment>

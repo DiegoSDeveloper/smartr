@@ -55,6 +55,7 @@ export const defaultConfig = {
         pageSize: 10,
         pageSizes: [10, 25, 50, 100],
       },
+
       classes: {
         badge: "badge bg-link rounded-pill font-size-12",
         // Table Pagination specific classes
@@ -72,6 +73,7 @@ export const defaultConfig = {
           disabledPage: "disabled",
         },
       },
+
       icons: {
         sortAscending: "fas fa-sort-up",
         sortDescending: "fas fa-sort-down",
@@ -81,6 +83,7 @@ export const defaultConfig = {
         nextPage: "fas fa-angle-right",
         lastPage: "fas fa-angle-double-right",
       },
+
       texts: {
         showing: "Showing from",
         to: "to",
@@ -95,6 +98,26 @@ export const defaultConfig = {
         loadingText: "Loading...",
         searchPlaceholder: "Search...",
         paginationText: "Showing {0} to {1} of {2} entries",
+
+        selectAll: "Select All",
+        selectRow: "Select",
+        checkboxHeaderTitle: "Select all rows",
+        checkboxCellTitle: "Select row",
+        sortAscendingTitle: "Sort ascending",
+        sortDescendingTitle: "Sort descending",
+        sortDefaultTitle: "Clear sort",
+        groupCountSingular: "record",
+        groupCountPlural: "records",
+        groupHeaderCountFormat: " ({count} {label})",
+        groupFooterText: "Group total: {count} records",
+        groupToggleExpandTitle: "Expand group",
+        groupToggleCollapseTitle: "Collapse group",
+
+        exportCsvFilename: "export.csv",
+        exportNoRowsWarning: "No rows selected for export.",
+        detailHeaderTitle: "Details",
+        tableRoleDescription: "Data table",
+        cardListRoleDescription: "Card list",
       },
     },
 
