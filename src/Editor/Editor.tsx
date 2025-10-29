@@ -4,6 +4,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useEffect,
 } from "react";
 import { classNames } from "../Utils/utils";
 
@@ -39,6 +40,7 @@ import Select from "../Select/Select";
 import { File } from "../File/File";
 import { EditorButton } from "../EditorButton/EditorButton";
 import { useSmartConfig } from "../hook/useSmartConfig";
+import { useContainerContext } from "../Container/ContainerContext";
 
 export interface EditorRef {
   validate: () => Promise<ValidationResult[]>;
@@ -53,6 +55,7 @@ export interface EditorRef {
 
 export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
   const config = useSmartConfig();
+  const { registerEditor, unregisterEditor } = useContainerContext();
   const {
     type = Input.Text,
     className,
@@ -343,7 +346,38 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     }
     return Promise.resolve(list);
   }
+  useEffect(() => {
+    if (editorName) {
+    
+      const editorInstance: EditorRef = {
+        validate,
+        getName,
+        getId,
+        getTitle,
+        getValue,
+        getSubmit,
+        setErrorList,
+      };
 
+      registerEditor(editorInstance);
+
+      return () => {
+        unregisterEditor(editorInstance);
+      };
+    }
+  }, [
+    editorName,
+    title,
+    options,
+    skipSubmit,
+    required,
+    tooltip,
+    mask,
+    valueType,
+    type,
+    validateDefaultOnSubmit,
+    customValidationOnSubmit,
+  ]);
   useImperativeHandle(ref, () => ({
     validate,
     getName,
