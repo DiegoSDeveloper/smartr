@@ -46,6 +46,11 @@ export interface TableRef {
   selectAll: () => void;
   deselectAll: () => void;
   exportData: (format: "csv" | "excel" | "pdf") => void;
+  getRecords: () => any[];
+  getRecord: (id: string) => any;
+  updateRecord: (id: string, newData: Partial<any>) => void;
+  removeRecord: (id: string) => void;
+  addRecord: (newRecord: any) => void;  
 }
 
 // ============================================================================

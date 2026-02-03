@@ -45,7 +45,7 @@ const processDataForGrouping = (
   data: any[],
   groupFields: string[],
   expandedGroups: Set<string>,
-  groupingConfig: any
+  groupingConfig: any,
 ): any[] => {
   if (!groupFields.length || data.length === 0) return data;
 
@@ -92,8 +92,8 @@ const processDataForGrouping = (
       const isExpanded = wasManuallyExpanded
         ? true
         : wasManuallyCollapsed
-        ? false
-        : isInitiallyExpanded;
+          ? false
+          : isInitiallyExpanded;
 
       // Add group header
       result.push({
@@ -179,7 +179,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       // Grouping props
       grouping,
     },
-    ref
+    ref,
   ) => {
     const {
       totalRecords,
@@ -207,7 +207,7 @@ export const Table = forwardRef<TableRef, TableProps>(
 
     // Grouping state
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-      new Set()
+      new Set(),
     );
     const [groupedData, setGroupedData] = useState<any[]>([]);
 
@@ -307,7 +307,7 @@ export const Table = forwardRef<TableRef, TableProps>(
         displayData,
         groupFields,
         expandedGroups,
-        groupingConfig
+        groupingConfig,
       );
       setGroupedData(processedData);
     }, [displayData, enableGrouping, groupBy, expandedGroups, groupingConfig]);
@@ -328,7 +328,7 @@ export const Table = forwardRef<TableRef, TableProps>(
         setInternalData(result.data || []);
         setInternalTotalRecords(result.totalRecords || 0);
         setInternalTotalPages(
-          result.totalPages || Math.ceil((result.totalRecords || 0) / pageSize)
+          result.totalPages || Math.ceil((result.totalRecords || 0) / pageSize),
         );
 
         onDataLoaded?.(result.data, result.totalRecords);
@@ -417,7 +417,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       },
       deselectRow: (rowIndex: number) => {
         setSelectedRows((prevSelected) =>
-          prevSelected.filter((index) => index !== rowIndex)
+          prevSelected.filter((index) => index !== rowIndex),
         );
       },
       selectAll: () => {
@@ -436,7 +436,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       exportData: (format: "csv" | "excel" | "pdf") => {
         // Get rows to be exported (exclude group headers/footers)
         const rowsToExport = displayData.filter(
-          (record) => !record.__isGroupHeader && !record.__isGroupFooter
+          (record) => !record.__isGroupHeader && !record.__isGroupFooter,
         );
 
         const rows =
@@ -455,7 +455,7 @@ export const Table = forwardRef<TableRef, TableProps>(
 
         // Process cell values for export
         const processedRows = rows.map((record) =>
-          columns.map((column) => renderCellValueForExport(record, column))
+          columns.map((column) => renderCellValueForExport(record, column)),
         );
 
         if (format === "csv") {
@@ -465,7 +465,7 @@ export const Table = forwardRef<TableRef, TableProps>(
             ...processedRows.map((row) =>
               row
                 .map((value) => `"${value}"`) // Escape values
-                .join(",")
+                .join(","),
             ),
           ].join("\n");
 
@@ -482,6 +482,66 @@ export const Table = forwardRef<TableRef, TableProps>(
         }
 
         // Future implementations for Excel and PDF can be added here
+      },
+
+      getRecords: () =>
+        displayData.filter(
+          (record) => !record.__isGroupHeader && !record.__isGroupFooter,
+        ),
+
+      getRecord: (id: string) =>
+        displayData
+          .filter(
+            (record) => !record.__isGroupHeader && !record.__isGroupFooter,
+          )
+          .find((record) => record.id?.toLowerCase() === id?.toLowerCase()),
+
+      updateRecord: (id: string, newData: Partial<any>) => {
+        // Optimistically update local data without reloading everything
+        setInternalData((prev) =>
+          prev.map((record) =>
+            record.id?.toLowerCase() === id?.toLowerCase()
+              ? { ...record, ...newData }
+              : record,
+          ),
+        );
+
+        // Selection indices may become stale after mutations
+        setSelectedRows([]);
+        onCheckedAllChange?.(false);
+      },
+
+      removeRecord: (id: string) => {
+        // Optimistically update local data without reloading everything
+        setInternalData((prev) =>
+          prev.filter(
+            (record) => record.id?.toLowerCase() !== id?.toLowerCase(),
+          ),
+        );
+
+        // Keep pagination metadata consistent (if you have these states available)
+        setInternalTotalRecords((prevTotal) => {
+          const newTotal = Math.max((prevTotal || 0) - 1, 0);
+          setInternalTotalPages(Math.ceil(newTotal / pageSize));
+          return newTotal;
+        });
+
+        setSelectedRows([]);
+        onCheckedAllChange?.(false);
+      },
+
+      addRecord: (newRecord: any) => {
+        // Optimistically update local data without reloading everything
+        setInternalData((prev) => [newRecord, ...prev]);
+
+        setInternalTotalRecords((prevTotal) => {
+          const newTotal = (prevTotal || 0) + 1;
+          setInternalTotalPages(Math.ceil(newTotal / pageSize));
+          return newTotal;
+        });
+
+        setSelectedRows([]);
+        onCheckedAllChange?.(false);
       },
     }));
 
@@ -515,7 +575,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       } else {
         flushSync(() => {
           setSelectedRows((prevSelected) =>
-            prevSelected.filter((index) => index !== rowIndex)
+            prevSelected.filter((index) => index !== rowIndex),
           );
         });
         if (onCheckedChange) {
@@ -602,7 +662,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       column: TableColumnProps,
       row: number,
       parent: any = null,
-      parentRow?: number
+      parentRow?: number,
     ) => {
       // Skip rendering for group headers/footers
       if (record.__isGroupHeader || record.__isGroupFooter) {
@@ -637,7 +697,7 @@ export const Table = forwardRef<TableRef, TableProps>(
             config.components.table.behavior.sourceDescriptionProperty;
           if (sourceValueProperty && sourceDescriptionProperty) {
             const foundItem = column.sourceList.find(
-              (item) => item[sourceValueProperty] === value
+              (item) => item[sourceValueProperty] === value,
             );
 
             if (foundItem) {
@@ -650,8 +710,8 @@ export const Table = forwardRef<TableRef, TableProps>(
                   const badgeClasses = Util.mapToCssModules(
                     classNames(
                       config.components.table.classes.badge,
-                      foundItem[sourceBadgeProperty]
-                    )
+                      foundItem[sourceBadgeProperty],
+                    ),
                   );
                   return <div className={badgeClasses}>{value}</div>;
                 }
@@ -682,7 +742,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                 value,
                 finalCulture,
                 { year: "numeric", month: "numeric", day: "numeric" },
-                finalTimeZone
+                finalTimeZone,
               );
             case "D":
               return Util.formatDate(
@@ -694,14 +754,14 @@ export const Table = forwardRef<TableRef, TableProps>(
                   month: "long",
                   day: "numeric",
                 },
-                finalTimeZone
+                finalTimeZone,
               );
             case "t":
               return Util.formatDate(
                 value,
                 finalCulture,
                 { hour: "2-digit", minute: "2-digit" },
-                finalTimeZone
+                finalTimeZone,
               );
             case "T":
               return Util.formatDate(
@@ -713,7 +773,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                   second: "2-digit",
                   hour12: true,
                 },
-                finalTimeZone
+                finalTimeZone,
               );
             case "c":
             case "C":
@@ -726,13 +786,13 @@ export const Table = forwardRef<TableRef, TableProps>(
             case "F":
               return parseFloat(value).toLocaleString(
                 finalCulture,
-                formatOptions
+                formatOptions,
               );
             case "n":
             case "N":
               return parseInt(value, 10).toLocaleString(
                 finalCulture,
-                formatOptions
+                formatOptions,
               );
             case "p":
             case "P":
@@ -759,7 +819,7 @@ export const Table = forwardRef<TableRef, TableProps>(
             return Util.getFormattedDateTime(
               value,
               finalTimeZone,
-              finalCulture
+              finalCulture,
             );
           case ColumnType.INT:
             return parseInt(value, 10);
@@ -800,7 +860,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                 value,
                 finalCulture,
                 { year: "numeric", month: "numeric", day: "numeric" },
-                finalTimeZone
+                finalTimeZone,
               );
             case "D":
               return Util.formatDate(
@@ -812,14 +872,14 @@ export const Table = forwardRef<TableRef, TableProps>(
                   month: "long",
                   day: "numeric",
                 },
-                finalTimeZone
+                finalTimeZone,
               );
             case "t":
               return Util.formatDate(
                 value,
                 finalCulture,
                 { hour: "2-digit", minute: "2-digit" },
-                finalTimeZone
+                finalTimeZone,
               );
             case "T":
               return Util.formatDate(
@@ -831,7 +891,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                   second: "2-digit",
                   hour12: true,
                 },
-                finalTimeZone
+                finalTimeZone,
               );
             case "c":
             case "C":
@@ -844,13 +904,13 @@ export const Table = forwardRef<TableRef, TableProps>(
             case "F":
               return parseFloat(value).toLocaleString(
                 finalCulture,
-                formatOptions
+                formatOptions,
               );
             case "n":
             case "N":
               return parseInt(value, 10).toLocaleString(
                 finalCulture,
-                formatOptions
+                formatOptions,
               );
             case "p":
             case "P":
@@ -878,7 +938,7 @@ export const Table = forwardRef<TableRef, TableProps>(
             return Util.getFormattedDateTime(
               value,
               finalTimeZone,
-              finalCulture
+              finalCulture,
             );
           case ColumnType.INT:
             return parseInt(value, 10);
@@ -894,16 +954,16 @@ export const Table = forwardRef<TableRef, TableProps>(
       classNames(
         className,
         "table table-bordered",
-        enableHoverEffect ? "table-hover" : ""
-      )
+        enableHoverEffect ? "table-hover" : "",
+      ),
     );
 
     const classesDetail = Util.mapToCssModules(
       classNames(
         classNameDetail,
         "table table-bordered",
-        enableHoverEffectDetail ? "table-hover" : ""
-      )
+        enableHoverEffectDetail ? "table-hover" : "",
+      ),
     );
 
     const renderHeader = () => {
@@ -938,7 +998,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                     Util.getAlignClassName(column.headerAlign),
                     {
                       "header-filter": !column.disableFilters,
-                    }
+                    },
                   )}
                   style={{
                     ...(column.width ? { width: column.width } : {}),
@@ -1022,7 +1082,7 @@ export const Table = forwardRef<TableRef, TableProps>(
               "cursor-pointer": collapsibleGroups,
               "group-expanded": isExpanded,
               "group-collapsed": !isExpanded,
-            }
+            },
           )}
           style={{
             paddingLeft: `${record.__groupLevel * 20}px`,
@@ -1037,7 +1097,7 @@ export const Table = forwardRef<TableRef, TableProps>(
               <i
                 className={classNames(
                   "fas me-2 transition-all",
-                  isExpanded ? "fa-chevron-down" : "fa-chevron-right"
+                  isExpanded ? "fa-chevron-down" : "fa-chevron-right",
                 )}
                 style={{ fontSize: "0.8rem" }}
               />
@@ -1051,7 +1111,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                     "{label}",
                     recordCount === 1
                       ? texts.groupCountSingular
-                      : texts.groupCountPlural
+                      : texts.groupCountPlural,
                   )}
             </strong>
           </div>
@@ -1071,7 +1131,7 @@ export const Table = forwardRef<TableRef, TableProps>(
               ? groupHeaderRender(
                   record.__groupValues,
                   record.__groupRecords,
-                  record.__groupLevel
+                  record.__groupLevel,
                 )
               : defaultContent}
           </td>
@@ -1092,7 +1152,7 @@ export const Table = forwardRef<TableRef, TableProps>(
           <em>
             {texts.groupFooterText.replace(
               "{count}",
-              String(record.__groupRecords.length)
+              String(record.__groupRecords.length),
             )}
           </em>
         </div>
@@ -1111,7 +1171,7 @@ export const Table = forwardRef<TableRef, TableProps>(
               ? groupFooterRender(
                   record.__groupValues,
                   record.__groupRecords,
-                  record.__groupLevel
+                  record.__groupLevel,
                 )
               : defaultContent}
           </td>
@@ -1123,7 +1183,7 @@ export const Table = forwardRef<TableRef, TableProps>(
       const handleRowDoubleClick = (
         event: React.MouseEvent<HTMLTableRowElement>,
         rowData: any,
-        rowIndex: number
+        rowIndex: number,
       ) => {
         // Skip group headers/footers
         if (rowData.__isGroupHeader || rowData.__isGroupFooter) return;
@@ -1137,7 +1197,7 @@ export const Table = forwardRef<TableRef, TableProps>(
         rowData: any,
         rowDataParent: any,
         rowIndex: number,
-        rowIndexParent: number
+        rowIndexParent: number,
       ) => {
         if (onDoubleClickDetail) {
           onDoubleClickDetail(rowData, rowDataParent, rowIndex, rowIndexParent);
@@ -1147,7 +1207,7 @@ export const Table = forwardRef<TableRef, TableProps>(
         rowIndex: number,
         colIndex: number,
         rowData: any,
-        column: TableColumnProps
+        column: TableColumnProps,
       ) => {
         // Skip group headers/footers
         if (rowData.__isGroupHeader || rowData.__isGroupFooter) return;
@@ -1157,7 +1217,7 @@ export const Table = forwardRef<TableRef, TableProps>(
             rowIndex,
             colIndex,
             Util.getColumnValue(column, rowData),
-            rowData
+            rowData,
           );
         }
       };
@@ -1217,15 +1277,15 @@ export const Table = forwardRef<TableRef, TableProps>(
                                   type="checkbox"
                                   checked={selectedRows.includes(
                                     displayData.findIndex(
-                                      (item) => item === record
-                                    )
+                                      (item) => item === record,
+                                    ),
                                   )}
                                   onChange={(event) =>
                                     handleSelect(
                                       event,
                                       displayData.findIndex(
-                                        (item) => item === record
-                                      )
+                                        (item) => item === record,
+                                      ),
                                     )
                                   }
                                   aria-label={texts.selectRowAriaLabel}
@@ -1238,7 +1298,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                                 role="cell"
                                 className={classNames(
                                   column.contentClassName,
-                                  Util.getAlignClassName(column.contentAlign)
+                                  Util.getAlignClassName(column.contentAlign),
                                 )}
                                 style={{
                                   ...((!showHeader ||
@@ -1253,7 +1313,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                                     rowIndex,
                                     colIndex,
                                     record,
-                                    column
+                                    column,
                                   )
                                 }
                               >
@@ -1309,12 +1369,12 @@ export const Table = forwardRef<TableRef, TableProps>(
                                               className={classNames(
                                                 columnDetail.headerClassName,
                                                 Util.getAlignClassName(
-                                                  columnDetail.headerAlign
+                                                  columnDetail.headerAlign,
                                                 ),
                                                 {
                                                   "header-filter":
                                                     !columnDetail.disableFilters,
-                                                }
+                                                },
                                               )}
                                               style={{
                                                 ...(columnDetail.width
@@ -1329,10 +1389,10 @@ export const Table = forwardRef<TableRef, TableProps>(
                                             >
                                               {columnDetail.header}
                                               {generateSortingIndicator(
-                                                columnDetail
+                                                columnDetail,
                                               )}
                                             </th>
-                                          )
+                                          ),
                                         )}
                                       </tr>
                                     </thead>
@@ -1347,8 +1407,8 @@ export const Table = forwardRef<TableRef, TableProps>(
                                             className={classNames(
                                               resolveDetailRowClassName(
                                                 recordDetail,
-                                                record
-                                              )
+                                                record,
+                                              ),
                                             )}
                                             onDoubleClick={(event) =>
                                               handleRowDoubleClickDetail(
@@ -1356,14 +1416,14 @@ export const Table = forwardRef<TableRef, TableProps>(
                                                 recordDetail,
                                                 record,
                                                 rowDetailIndex,
-                                                rowIndex
+                                                rowIndex,
                                               )
                                             }
                                           >
                                             {columnsDetail.map(
                                               (
                                                 columnDetail,
-                                                colDetailIndex
+                                                colDetailIndex,
                                               ) => (
                                                 <td
                                                   key={colDetailIndex}
@@ -1371,8 +1431,8 @@ export const Table = forwardRef<TableRef, TableProps>(
                                                   className={classNames(
                                                     columnDetail.contentClassName,
                                                     Util.getAlignClassName(
-                                                      columnDetail.contentAlign
-                                                    )
+                                                      columnDetail.contentAlign,
+                                                    ),
                                                   )}
                                                   style={{
                                                     ...((!showHeader ||
@@ -1391,10 +1451,10 @@ export const Table = forwardRef<TableRef, TableProps>(
                                                     columnDetail,
                                                     rowDetailIndex,
                                                     record,
-                                                    rowIndex
+                                                    rowIndex,
                                                   )}
                                                 </td>
-                                              )
+                                              ),
                                             )}
                                           </tr>
 
@@ -1411,13 +1471,13 @@ export const Table = forwardRef<TableRef, TableProps>(
                                                   recordDetail,
                                                   record,
                                                   rowDetailIndex,
-                                                  rowIndex
+                                                  rowIndex,
                                                 )}
                                               </td>
                                             </tr>
                                           )}
                                         </Fragment>
-                                      )
+                                      ),
                                     )}
                                   </tbody>
                                 </table>
@@ -1492,7 +1552,7 @@ export const Table = forwardRef<TableRef, TableProps>(
               key={rowIndex}
               className={classNames(
                 "card mb-3 p-3 shadow-sm",
-                resolveRowClassName(record)
+                resolveRowClassName(record),
               )}
               onDoubleClick={(e) => {
                 if (!record.__isGroupHeader && !record.__isGroupFooter) {
@@ -1526,7 +1586,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                           "fas me-2 transition-all",
                           record.__isExpanded
                             ? "fa-chevron-down"
-                            : "fa-chevron-right"
+                            : "fa-chevron-right",
                         )}
                         style={{ fontSize: "0.8rem" }}
                       />
@@ -1570,7 +1630,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                     const cellContent = renderCellValue(
                       record,
                       column,
-                      rowIndex
+                      rowIndex,
                     );
 
                     const coi = column.cardOnlyIfValue;
@@ -1594,7 +1654,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                             className={classNames(
                               "col-4",
                               column.headerClassName,
-                              Util.getAlignClassName(column.headerAlignCard)
+                              Util.getAlignClassName(column.headerAlignCard),
                             )}
                           >
                             <strong>{column.header}</strong>
@@ -1608,8 +1668,8 @@ export const Table = forwardRef<TableRef, TableProps>(
                             column.contentClassName,
                             Util.getAlignClassName(
                               column.contentAlignCard,
-                              AlignType.END
-                            )
+                              AlignType.END,
+                            ),
                           )}
                         >
                           {cellContent}
@@ -1638,14 +1698,14 @@ export const Table = forwardRef<TableRef, TableProps>(
                               key={rowDetailIndex}
                               className={classNames(
                                 "card mb-2 p-2 bg-light-subtle",
-                                resolveDetailRowClassName(recordDetail, record)
+                                resolveDetailRowClassName(recordDetail, record),
                               )}
                               onDoubleClick={() =>
                                 onDoubleClickDetail?.(
                                   recordDetail,
                                   record,
                                   rowDetailIndex,
-                                  rowIndex
+                                  rowIndex,
                                 )
                               }
                             >
@@ -1656,7 +1716,7 @@ export const Table = forwardRef<TableRef, TableProps>(
                                     columnDetail,
                                     rowDetailIndex,
                                     record,
-                                    rowIndex
+                                    rowIndex,
                                   );
 
                                   const coi = columnDetail.cardOnlyIfValue;
@@ -1686,8 +1746,8 @@ export const Table = forwardRef<TableRef, TableProps>(
                                             columnDetail.headerClassName,
                                             Util.getAlignClassName(
                                               columnDetail.headerAlignCard ??
-                                                columnDetail.headerAlign
-                                            )
+                                                columnDetail.headerAlign,
+                                            ),
                                           )}
                                         >
                                           <strong>{columnDetail.header}</strong>
@@ -1701,15 +1761,15 @@ export const Table = forwardRef<TableRef, TableProps>(
                                           Util.getAlignClassName(
                                             columnDetail.contentAlignCard ??
                                               columnDetail.contentAlign,
-                                            AlignType.END
-                                          )
+                                            AlignType.END,
+                                          ),
                                         )}
                                       >
                                         {cellDetail}
                                       </div>
                                     </div>
                                   );
-                                }
+                                },
                               )}
 
                               {/* ➜ detail card footer */}
@@ -1719,12 +1779,12 @@ export const Table = forwardRef<TableRef, TableProps>(
                                     recordDetail,
                                     record,
                                     rowDetailIndex,
-                                    rowIndex
+                                    rowIndex,
                                   )}
                                 </div>
                               )}
                             </div>
-                          )
+                          ),
                         )}
                       </div>
                     )}
@@ -1771,5 +1831,5 @@ export const Table = forwardRef<TableRef, TableProps>(
           renderPagination()}
       </div>
     );
-  }
+  },
 );
