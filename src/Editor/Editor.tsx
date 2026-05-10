@@ -1123,21 +1123,21 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
   ));
 
   let inputGroup = (
-    <div className={config.components.editor.classes.inputGroup}>
-      {prependButtonElements}
-      {config.behavior.input.prependIconAfterInput && prependIconComponent}
-      {(showPasswordIconPosition === IconPosition.Start ||
-        showPasswordIconPosition === IconPosition.Both) &&
-        showPasswordIconComponent}
-      {editorInput}
-      {!config.behavior.input.prependIconAfterInput && prependIconComponent}
-      {(showPasswordIconPosition === IconPosition.End ||
-        showPasswordIconPosition === IconPosition.Both) &&
-        showPasswordIconComponent}
-      {appendIconComponent}
-      {appendButtonElements}
-    </div>
-  );
+  <div className={config.components.editor.classes.inputGroup}>
+    {prependButtonElements}
+    {config.behavior.input.prependIconAfterInput && prependIconComponent}
+    {(showPasswordIconPosition === IconPosition.Start ||
+      showPasswordIconPosition === IconPosition.Both) &&
+      showPasswordIconComponent}
+    {editorInput}
+    {!config.behavior.input.prependIconAfterInput && prependIconComponent}
+    {appendIconComponent}
+    {(showPasswordIconPosition === IconPosition.End ||
+      showPasswordIconPosition === IconPosition.Both) &&
+      showPasswordIconComponent}
+    {appendButtonElements}
+  </div>
+);
 
   if (!hasIcon && !(prependButtonElements || appendButtonElements)) {
     inputGroup = editorInput;

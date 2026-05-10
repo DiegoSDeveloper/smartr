@@ -278,6 +278,18 @@ export const Table = forwardRef<TableRef, TableProps>(
       displayData.length > 0 && selectedRows.length === displayData.length;
     const someSelected =
       selectedRows.length > 0 && selectedRows.length < displayData.length;
+
+    // Reset selection when the displayed data changes (e.g. filtering/grouping)
+    useEffect(() => {
+      if (
+        selection === SelectionType.CHECKBOX ||
+        selection === SelectionType.MULTIPLE
+      ) {
+        setSelectedRows([]);
+        onCheckedAllChange?.(false);
+      }
+    }, [displayData, selection]);
+
     // Fetch data when enableDataManagement is true
     useEffect(() => {
       if (isManaged && autoLoad) {
@@ -292,15 +304,6 @@ export const Table = forwardRef<TableRef, TableProps>(
         return;
       }
 
-      useEffect(() => {
-        if (
-          selection === SelectionType.CHECKBOX ||
-          selection === SelectionType.MULTIPLE
-        ) {
-          setSelectedRows([]);
-          onCheckedAllChange?.(false);
-        }
-      }, [displayData, selection]);
 
       const groupFields = Array.isArray(groupBy) ? groupBy : [groupBy];
       const processedData = processDataForGrouping(
