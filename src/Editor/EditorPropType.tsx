@@ -64,6 +64,7 @@ export interface EditorPropType
   characterCasing?: CharacterCasing;
   max?: number;
   min?: number;
+  step?: number;
   maxDate?: string | Date;
   minDate?: string | Date;
   mask?: string;

@@ -742,7 +742,11 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
   let dataSource = [];
   if (type !== Input.Select) {
     if (editorValue) {
-      if (type !== Input.Date || !(editorValue instanceof Date)) {
+      const isNativeDateType =
+        type === Input.Date ||
+        type === Input.DateTime ||
+        type === Input.Month;
+      if (!isNativeDateType || !(editorValue instanceof Date)) {
         if (
           editorValue &&
           (editorMask ||
@@ -761,10 +765,18 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
         }
       } else {
         try {
-          var day = ("0" + editorValue.getDate()).slice(-2);
-          var month = ("0" + (editorValue.getMonth() + 1)).slice(-2);
-          var dateValue = editorValue.getFullYear() + "-" + month + "-" + day;
-          editorValue = String(dateValue);
+          const year = editorValue.getFullYear();
+          const month = ("0" + (editorValue.getMonth() + 1)).slice(-2);
+          const day = ("0" + editorValue.getDate()).slice(-2);
+          if (type === Input.Month) {
+            editorValue = `${year}-${month}`;
+          } else if (type === Input.DateTime) {
+            const hours = ("0" + editorValue.getHours()).slice(-2);
+            const minutes = ("0" + editorValue.getMinutes()).slice(-2);
+            editorValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+          } else {
+            editorValue = `${year}-${month}-${day}`;
+          }
         } catch {}
       }
     }

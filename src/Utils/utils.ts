@@ -111,8 +111,12 @@ export function getDefaultHasIcon(type: Input) {
     type === Input.Password ||
     type === Input.Email ||
     type === Input.Date ||
+    type === Input.DateTime ||
+    type === Input.Month ||
+    type === Input.Week ||
     type === Input.Time ||
     type === Input.Card ||
+    type === Input.Url ||
     type === Input.FastSearch
   );
 }
@@ -156,12 +160,28 @@ export function getDefaultIconPosition(type: Input): IconPosition {
       return iconsPosition.date === "start"
         ? IconPosition.Start
         : IconPosition.End;
+    case Input.DateTime:
+      return iconsPosition.dateTime === "start"
+        ? IconPosition.Start
+        : IconPosition.End;
+    case Input.Month:
+      return iconsPosition.month === "start"
+        ? IconPosition.Start
+        : IconPosition.End;
+    case Input.Week:
+      return iconsPosition.week === "start"
+        ? IconPosition.Start
+        : IconPosition.End;
     case Input.Time:
       return iconsPosition.time === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.Card:
       return iconsPosition.card === "start"
+        ? IconPosition.Start
+        : IconPosition.End;
+    case Input.Url:
+      return iconsPosition.url === "start"
         ? IconPosition.Start
         : IconPosition.End;
     case Input.FastSearch:
@@ -194,10 +214,18 @@ export function getDefaultIcon(type: Input) {
       return icons.email;
     case Input.Date:
       return icons.date;
+    case Input.DateTime:
+      return icons.dateTime;
+    case Input.Month:
+      return icons.month;
+    case Input.Week:
+      return icons.week;
     case Input.Time:
       return icons.time;
     case Input.Card:
       return icons.card;
+    case Input.Url:
+      return icons.url;
     case Input.FastSearch:
       return icons.fastSearch;
   }
@@ -209,6 +237,7 @@ export function getValueType(type: Input) {
     case Input.Money:
     case Input.Percent:
     case Input.Decimal:
+    case Input.Range:
       return ValueType.Float;
     case Input.Integer:
       return ValueType.Integer;
@@ -317,13 +346,28 @@ export function getValueAsType(
     }
   }
 }
-function getDateFormatted(date: Date) {
+export function getDateFormatted(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
   const formattedDate = `${year}-${month}-${day}`;
   return formattedDate;
+}
+
+export function getMonthFormatted(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+export function getDateTimeFormatted(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 export function getEditorAttributes(
   props: EditorPropType,
@@ -494,12 +538,71 @@ export function getEditorAttributes(
         }
       }
       break;
+    case Input.DateTime:
+      {
+        editorAttributes["type"] = "datetime-local";
+        if (minDate) {
+          editorAttributes["min"] =
+            typeof minDate === "string"
+              ? minDate
+              : getDateTimeFormatted(minDate);
+        }
+        if (maxDate) {
+          editorAttributes["max"] =
+            typeof maxDate === "string"
+              ? maxDate
+              : getDateTimeFormatted(maxDate);
+        }
+      }
+      break;
+    case Input.Month:
+      {
+        editorAttributes["type"] = "month";
+        if (minDate) {
+          editorAttributes["min"] =
+            typeof minDate === "string" ? minDate : getMonthFormatted(minDate);
+        }
+        if (maxDate) {
+          editorAttributes["max"] =
+            typeof maxDate === "string" ? maxDate : getMonthFormatted(maxDate);
+        }
+      }
+      break;
+    case Input.Week:
+      {
+        editorAttributes["type"] = "week";
+        if (minDate && typeof minDate === "string") {
+          editorAttributes["min"] = minDate;
+        }
+        if (maxDate && typeof maxDate === "string") {
+          editorAttributes["max"] = maxDate;
+        }
+      }
+      break;
     case Input.Time:
       {
         editorAttributes["type"] = "text";
         editorAttributes["data-autoclose"] = "true";
         editorAttributes["readOnly"] = "";
         editorAttributes["data-time"] = "true";
+      }
+      break;
+    case Input.Url:
+      {
+        editorAttributes["type"] = "url";
+      }
+      break;
+    case Input.Color:
+      {
+        editorAttributes["type"] = "color";
+      }
+      break;
+    case Input.Range:
+      {
+        editorAttributes["type"] = "range";
+        if (props.step !== undefined && props.step !== null) {
+          editorAttributes["step"] = String(props.step);
+        }
       }
       break;
     case Input.Password:
@@ -568,20 +671,21 @@ export function getEditorAttributes(
   if (editorMask) {
     editorAttributes["data-mask"] = editorMask;
   }
+  const isNumericInput = type === Input.Integer || type === Input.Range;
   if (type !== Input.File) {
-    if (min && min > 0) {
-      if (type !== Input.Integer) {
-        editorAttributes["minLength"] = String(min);
-      } else {
+    if (min !== undefined && min !== null && (isNumericInput || min > 0)) {
+      if (isNumericInput) {
         editorAttributes["min"] = String(min);
+      } else {
+        editorAttributes["minLength"] = String(min);
       }
     }
-    if (max && max > 0) {
+    if (max !== undefined && max !== null && (isNumericInput || max > 0)) {
       let maskLength = (editorMask ?? "").length;
-      if (type !== Input.Integer) {
-        editorAttributes["maxLength"] = String(Math.max(max, maskLength));
+      if (isNumericInput) {
+        editorAttributes["max"] = String(max);
       } else {
-        editorAttributes["max"] = String(Math.max(max, maskLength));
+        editorAttributes["maxLength"] = String(Math.max(max, maskLength));
       }
     }
     if (placeholder) {

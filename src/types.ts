@@ -50,6 +50,11 @@ export enum Input {
   Decimal = 4194304,
   File = 8388608,
   Month = 16777216,
+  Url = 33554432,
+  DateTime = 67108864,
+  Week = 134217728,
+  Color = 268435456,
+  Range = 536870912,
 }
 export enum YesNo {
   Yes,
