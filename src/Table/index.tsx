@@ -4,6 +4,7 @@ import {
   useImperativeHandle,
   useState,
   useEffect,
+  CSSProperties,
 } from "react";
 
 import {
@@ -159,6 +160,9 @@ export const Table = forwardRef<TableRef, TableProps>(
       sortDescendingIcon,
       sortDefaultIcon,
       viewMode = getDefaultViewMode(cardViewModeBelow),
+      scrollable = false,
+      scrollHeight,
+      stickyHeader = false,
       rowClassName,
       rowDetailClassName,
       data = [],
@@ -961,6 +965,24 @@ export const Table = forwardRef<TableRef, TableProps>(
       ),
     );
 
+    const scrollContainerStyle: CSSProperties | undefined = scrollable
+      ? {
+          maxHeight:
+            typeof scrollHeight === "number"
+              ? `${scrollHeight}px`
+              : (scrollHeight ?? "400px"),
+          overflowY: "auto",
+        }
+      : undefined;
+
+    const stickyHeaderStyle: CSSProperties | undefined = stickyHeader
+      ? {
+          position: "sticky",
+          top: 0,
+          zIndex: 2,
+        }
+      : undefined;
+
     const classesDetail = Util.mapToCssModules(
       classNames(
         classNameDetail,
@@ -972,7 +994,7 @@ export const Table = forwardRef<TableRef, TableProps>(
     const renderHeader = () => {
       return (
         <>
-          <thead className="table-light table-nowrap">
+          <thead className="table-light table-nowrap" style={stickyHeaderStyle}>
             <tr role="row">
               {selection === SelectionType.CHECKBOX && (
                 <th
@@ -1245,7 +1267,10 @@ export const Table = forwardRef<TableRef, TableProps>(
       return (
         <>
           {data.length > 0 ? (
-            <div className="table-responsive react-table">
+            <div
+              className="table-responsive react-table"
+              style={scrollContainerStyle}
+            >
               <table role="table" className={classes}>
                 {showHeader && !uniqueHeaderSingleRecordTable && renderHeader()}
 

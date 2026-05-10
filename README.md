@@ -144,6 +144,26 @@ function DataTable() {
 }
 ```
 
+#### Scroll & sticky header (opcional)
+
+Por padrão a Table **não tem scroll** e o header rola junto — comportamento idêntico ao anterior, sem breaking changes. Para habilitar scroll vertical com header fixo:
+
+```tsx
+<Table
+  columns={columns}
+  data={rows}
+  scrollable          // habilita overflow vertical
+  scrollHeight={500}  // px (default "400px" se omitido). Aceita string ("60vh") ou number.
+  stickyHeader        // <thead> com position: sticky; top: 0
+/>
+```
+
+| Prop           | Tipo                  | Default       | Notas                                                  |
+| -------------- | --------------------- | ------------- | ------------------------------------------------------ |
+| `scrollable`   | `boolean`             | `false`       | Sem efeito quando `viewMode = CARD`.                   |
+| `scrollHeight` | `string \| number`    | `"400px"`     | Só usado quando `scrollable=true`. Number vira `px`.   |
+| `stickyHeader` | `boolean`             | `false`       | Funciona independente de `scrollable`.                 |
+
 ### Alert — Contextual feedback messages
 
 ```tsx

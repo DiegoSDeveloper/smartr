@@ -196,6 +196,11 @@ export interface TableProps extends TableDataManagementProps {
   viewMode?: TableViewMode;
   cardViewModeBelow?: ScreenSize;
 
+  // Scroll behavior (table view only)
+  scrollable?: boolean;
+  scrollHeight?: string | number;
+  stickyHeader?: boolean;
+
   // Selection
   selection?: SelectionType;
   enableSelectAll?: boolean;
