@@ -13,6 +13,9 @@ dist/
 .env
 .env.local
 
+# Auth tokens (publish.js may write a temp .npmrc during release)
+.npmrc
+
 # IDE
 .vscode/
 .idea/
