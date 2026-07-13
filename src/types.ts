@@ -28,33 +28,30 @@ export enum ColumnSize {
 export enum Input {
   Text = 1,
   Money = 2,
-  Date = 4,
-  Email = 8,
-  Select = 16,
-  Phone = 32,
-  Mobile = 64,
-  Password = 128,
-  CheckBox = 512,
-  Percent = 1024,
-  Search = 2048,
-  LongText = 4096,
-  Hidden = 8192,
-  Integer = 16384,
-  Time = 32768,
-  Label = 65536,
-  Fax = 131072,
-  Card = 262144,
-  Html = 524288,
-  Radio = 1048576,
-  FastSearch = 2097152,
-  Decimal = 4194304,
-  File = 8388608,
-  Month = 16777216,
-  Url = 33554432,
-  DateTime = 67108864,
-  Week = 134217728,
-  Color = 268435456,
-  Range = 536870912,
+  Date = 3,
+  Email = 4,
+  Select = 5,
+  Phone = 6,
+  Mobile = 7,
+  Password = 8,
+  CheckBox = 9,
+  Percent = 10,
+  LongText = 11,
+  Hidden = 12,
+  Integer = 13,
+  Time = 14,
+  Label = 15,
+  Fax = 16,
+  Radio = 17,
+  FastSearch = 18,
+  Decimal = 19,
+  File = 20,
+  Month = 21,
+  Url = 22,
+  DateTime = 23,
+  Week = 24,
+  Color = 25,
+  Range = 26,
 }
 export enum YesNo {
   Yes,
@@ -136,4 +133,42 @@ export enum LabelMode {
   Normal = 1,
   CheckBox = 2,
   RadioButton = 3,
+}
+
+/**
+ * Option shape used by the async select engine.
+ * `id`/`description` are the default keys; custom keys are supported via
+ * `optionsId`/`optionsDescription` plus the index signature.
+ */
+export type SmartOption = {
+  id: any;
+  description: string;
+  [key: string]: any;
+};
+
+/**
+ * Arguments passed by the library to the consumer's `loadOptions` handler.
+ * The library never performs I/O itself — the consumer decides how to fetch.
+ */
+export interface LoadOptionsArgs {
+  /** Search term typed by the user (already debounced). */
+  search: string;
+  /** 1-based page number to load. */
+  page: number;
+  /** Number of items expected per page. */
+  pageSize: number;
+  /**
+   * Aborted by the library when a newer request supersedes this one.
+   * The consumer should forward it to its fetch implementation.
+   */
+  signal: AbortSignal;
+}
+
+/** Result returned by the consumer's `loadOptions` handler. */
+export interface LoadOptionsResult {
+  options: SmartOption[];
+  /** When omitted, the library infers it from `options.length === pageSize`. */
+  hasMore?: boolean;
+  /** Optional total count, if the consumer knows it. */
+  total?: number;
 }

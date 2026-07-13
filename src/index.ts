@@ -12,6 +12,8 @@ export * from './Loading/index';
 export * from './Radio/Radio';
 export * from './Row/Row';
 export * from './Select/Select';
+export * from './Select/AsyncSelect';
+export * from './Select/SelectOption';
 export * from './Table/TablePagination';
 export * from './Table/index';
 export * from './Table/timezone';

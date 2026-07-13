@@ -4,6 +4,7 @@ import { Input } from "../types";
 import { mapToCssModules } from "../Utils/utils";
 import { classNames } from "../Utils/utils";
 import { useSmartConfig } from "../hook/useSmartConfig";
+import { SelectOption } from "./SelectOption";
 
 interface SelectPropTypes {
   options: any[];
@@ -369,74 +370,20 @@ const Select = (props: SelectPropTypes) => {
       // Criar elementos React agrupados
       innerChildren = Array.from(groupedOptions.entries()).map(
         ([groupName, groupOptions], groupIndex) => {
-          const optionElements = groupOptions.map((option, optionIndex) => {
-            const isSelected = selecteds.includes(String(option[optionsId]));
-
-            // Se optionRenderer foi fornecido, use-o
-            if (option[optionsId] && optionRenderer) {
-              return (
-                <div
-                  key={`group-${groupIndex}-option-${optionIndex}`}
-                  className={classNames(
-                    config.components.select.classes.option,
-                    {
-                      [config.components.select.classes.optionDisabled]:
-                        isDisabled,
-                    }
-                  )}
-                  onClick={
-                    isDisabled ? undefined : (e) => handleOptionClick(option, e)
-                  }
-                >
-                  {optionRenderer(option, isSelected, searchText)}
-                </div>
-              );
-            }
-
-            // Renderização padrão para opções agrupadas
-            const optionText = option[optionsDescription];
-            const startIndex = optionText
-              .toLowerCase()
-              .indexOf(searchText.toLowerCase());
-            const endIndex = startIndex + searchText.length;
-
-            return (
-              <div
-                key={`group-${groupIndex}-option-${optionIndex}`}
-                className={classNames(config.components.select.classes.option, {
-                  [config.components.select.classes.optionDisabled]: isDisabled,
-                })}
-                onClick={
-                  isDisabled ? undefined : (e) => handleOptionClick(option, e)
-                }
-              >
-                {optionsMultiple ? (
-                  <input
-                    data-smarteditor="CheckBox"
-                    type="checkbox"
-                    className={config.components.checkbox.classes.input}
-                    checked={isSelected}
-                    value={option[optionsId]}
-                    disabled={isDisabled}
-                  ></input>
-                ) : null}
-
-                <span>
-                  {startIndex >= 0 ? (
-                    <>
-                      {optionText.substring(0, startIndex)}
-                      <strong>
-                        {optionText.substring(startIndex, endIndex)}
-                      </strong>
-                      {optionText.substring(endIndex)}
-                    </>
-                  ) : (
-                    optionText
-                  )}
-                </span>
-              </div>
-            );
-          });
+          const optionElements = groupOptions.map((option, optionIndex) => (
+            <SelectOption
+              key={`group-${groupIndex}-option-${optionIndex}`}
+              option={option}
+              optionsId={optionsId}
+              optionsDescription={optionsDescription}
+              isSelected={selecteds.includes(String(option[optionsId]))}
+              isDisabled={isDisabled}
+              searchText={searchText}
+              optionsMultiple={optionsMultiple}
+              optionRenderer={optionRenderer}
+              onOptionClick={handleOptionClick}
+            />
+          ));
 
           return (
             <div key={`group-${groupIndex}`}>
@@ -450,68 +397,20 @@ const Select = (props: SelectPropTypes) => {
       );
     } else {
       // Lógica original para opções não agrupadas
-      innerChildren = filteredItems.map((option, index) => {
-        const isSelected = selecteds.includes(String(option[optionsId]));
-
-        // Se optionRenderer foi fornecido, use-o
-        if (option[optionsId] && optionRenderer) {
-          return (
-            <div
-              key={index}
-              className={classNames(config.components.select.classes.option, {
-                [config.components.select.classes.optionDisabled]: isDisabled,
-              })}
-              onClick={
-                isDisabled ? undefined : (e) => handleOptionClick(option, e)
-              }
-            >
-              {optionRenderer(option, isSelected, searchText)}
-            </div>
-          );
-        }
-
-        // Renderização padrão (código original)
-        const optionText = option[optionsDescription];
-        const startIndex = optionText
-          .toLowerCase()
-          .indexOf(searchText.toLowerCase());
-        const endIndex = startIndex + searchText.length;
-
-        return (
-          <div
-            key={index}
-            className={classNames(config.components.select.classes.option, {
-              [config.components.select.classes.optionDisabled]: isDisabled,
-            })}
-            onClick={
-              isDisabled ? undefined : (e) => handleOptionClick(option, e)
-            }
-          >
-            {optionsMultiple ? (
-              <input
-                data-smarteditor="CheckBox"
-                type="checkbox"
-                className={config.components.checkbox.classes.input}
-                checked={isSelected}
-                value={option[optionsId]}
-                disabled={isDisabled}
-              ></input>
-            ) : null}
-
-            <span>
-              {startIndex >= 0 ? (
-                <>
-                  {optionText.substring(0, startIndex)}
-                  <strong>{optionText.substring(startIndex, endIndex)}</strong>
-                  {optionText.substring(endIndex)}
-                </>
-              ) : (
-                optionText
-              )}
-            </span>
-          </div>
-        );
-      });
+      innerChildren = filteredItems.map((option, index) => (
+        <SelectOption
+          key={index}
+          option={option}
+          optionsId={optionsId}
+          optionsDescription={optionsDescription}
+          isSelected={selecteds.includes(String(option[optionsId]))}
+          isDisabled={isDisabled}
+          searchText={searchText}
+          optionsMultiple={optionsMultiple}
+          optionRenderer={optionRenderer}
+          onOptionClick={handleOptionClick}
+        />
+      ));
     }
   }
 

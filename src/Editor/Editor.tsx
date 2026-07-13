@@ -37,6 +37,7 @@ import { CheckboxGroup } from "../CheckboxGroup/CheckboxGroup";
 import { EditorInput } from "../EditorInput/EditorInput";
 import { Radio } from "../Radio/Radio";
 import Select from "../Select/Select";
+import AsyncSelect from "../Select/AsyncSelect";
 import { File } from "../File/File";
 import { EditorButton } from "../EditorButton/EditorButton";
 import { useSmartConfig } from "../hook/useSmartConfig";
@@ -105,7 +106,10 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     showPasswordIconPosition = IconPosition.End,
     showPasswordIcon = config.resources.icons.showPassword,
     hidePasswordIcon = config.resources.icons.hidePassword,
-    hasIcon = getDefaultHasIcon(props.type),
+    hasIcon = getDefaultHasIcon(
+      props.type,
+      typeof props.loadOptions === "function"
+    ),
     iconPosition = getDefaultIconPosition(props.type),
     appendIcon = getDefaultIcon(props.type),
     prependIcon = getDefaultIcon(props.type),
@@ -143,6 +147,20 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       .optionsLimiteDescriptionSelected,
     optionsFilterPlaceholder = config.components.select.texts.filterPlaceholder,
     optionRenderer,
+    loadOptions,
+    loadSelectedOption,
+    selectedOption,
+    pageSize = config.behavior.select.pageSize,
+    searchDebounceMs = config.behavior.select.searchDebounceMs,
+    minSearchLength,
+    loadOnOpen,
+    reloadToken,
+    showNoneOption,
+    onSearchChange,
+    onOpen,
+    renderEmpty,
+    renderError,
+    renderLoading,
     thousandsSeparator = config.behavior.input.thousandsSeparator,
     decimalSeparator = config.behavior.input.decimalSeparator,
     decimalPlaces = config.behavior.input.decimalPlaces,
@@ -169,6 +187,21 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     showValidationResultOnSubmit = config.behavior.validation.validateOnSubmit,
     ...attributes
   } = props;
+
+  // Modo assíncrono: ativado quando o consumidor informa loadOptions.
+  // FastSearch tem defaults de autocomplete (só busca depois de digitar).
+  const isAsyncSelect = typeof loadOptions === "function";
+  const isFastSearch = type === Input.FastSearch;
+  const asyncMinSearchLength =
+    minSearchLength ??
+    (isFastSearch
+      ? config.behavior.select.fastSearchMinSearchLength
+      : config.behavior.select.minSearchLength);
+  const asyncLoadOnOpen =
+    loadOnOpen ??
+    (isFastSearch
+      ? config.behavior.select.fastSearchLoadOnOpen
+      : config.behavior.select.loadOnOpen);
 
   const inputRadioRefs = useRef([]);
   const inputRef = useRef<
@@ -749,6 +782,7 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
       if (!isNativeDateType || !(editorValue instanceof Date)) {
         if (
           editorValue &&
+          type !== Input.Label &&
           (editorMask ||
             type === Input.Money ||
             type === Input.Decimal ||
@@ -889,6 +923,43 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
     showPassword
   );
 
+  if (isAsyncSelect && (type === Input.Select || isFastSearch)) {
+    // Dropdown assíncrono: a lib orquestra a UI; o consumidor busca os dados
+    editorInput = (
+      <AsyncSelect
+        loadOptions={loadOptions}
+        loadSelectedOption={loadSelectedOption}
+        selectedOption={selectedOption}
+        pageSize={pageSize}
+        searchDebounceMs={searchDebounceMs}
+        minSearchLength={asyncMinSearchLength}
+        loadOnOpen={asyncLoadOnOpen}
+        reloadToken={reloadToken}
+        showNoneOption={showNoneOption}
+        onSearchChange={onSearchChange}
+        onOpen={onOpen}
+        optionRenderer={optionRenderer}
+        renderEmpty={renderEmpty}
+        renderError={renderError}
+        renderLoading={renderLoading}
+        optionsId={optionsId}
+        optionsDescription={optionsDescription}
+        optionsNoneSelectedValue={optionsNoneSelectedValue}
+        optionsNoneSelectedText={optionsNoneSelectedText}
+        optionsFirstSelected={optionsFirstSelected}
+        placeholder={placeholder}
+        searchPlaceholder={optionsFilterPlaceholder}
+        value={editorValue}
+        enabled={enabled}
+        readOnly={readOnly}
+        editorAttributes={editorAttributes}
+        onBlurEvent={handleInputBlur}
+        onChangeEvent={handleInputChange}
+        inputRef={inputRef}
+        className={classes}
+      />
+    );
+  } else
   switch (type) {
     case Input.CheckBox:
       {
@@ -975,6 +1046,33 @@ export const Editor = forwardRef<EditorRef, EditorPropType>((props, ref) => {
             className={classes}
             inputRef={inputRef}
           />
+        );
+      }
+      break;
+    case Input.Label:
+      {
+        // Campo somente-exibição: renderiza o valor como texto estático,
+        // mantendo título, layout de coluna e vínculo com o formState
+        let labelValue: React.ReactNode = "";
+        if (editorValue !== undefined && editorValue !== null) {
+          labelValue =
+            editorValue instanceof Date
+              ? editorValue.toLocaleString()
+              : String(editorValue);
+        }
+        editorInput = (
+          <span
+            data-smarteditor="Label"
+            id={id}
+            className={mapToCssModules(
+              classNames(
+                className,
+                config.components.editor.classes.inputLabel
+              )
+            )}
+          >
+            {labelValue}
+          </span>
         );
       }
       break;

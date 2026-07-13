@@ -101,7 +101,12 @@ export function formatNumber(
   return wholeNumber + decimalSeparator + decimalPart;
 }
 
-export function getDefaultHasIcon(type: Input) {
+export function getDefaultHasIcon(type: Input, isAsyncSelect: boolean = false) {
+  // Em modo assíncrono o FastSearch é renderizado como dropdown (AsyncSelect),
+  // não como input de texto — sem o input-group com ícone de lupa
+  if (type === Input.FastSearch && isAsyncSelect) {
+    return false;
+  }
   return (
     type === Input.Mobile ||
     type === Input.Phone ||
@@ -115,7 +120,6 @@ export function getDefaultHasIcon(type: Input) {
     type === Input.Month ||
     type === Input.Week ||
     type === Input.Time ||
-    type === Input.Card ||
     type === Input.Url ||
     type === Input.FastSearch
   );
@@ -176,10 +180,6 @@ export function getDefaultIconPosition(type: Input): IconPosition {
       return iconsPosition.time === "start"
         ? IconPosition.Start
         : IconPosition.End;
-    case Input.Card:
-      return iconsPosition.card === "start"
-        ? IconPosition.Start
-        : IconPosition.End;
     case Input.Url:
       return iconsPosition.url === "start"
         ? IconPosition.Start
@@ -222,8 +222,6 @@ export function getDefaultIcon(type: Input) {
       return icons.week;
     case Input.Time:
       return icons.time;
-    case Input.Card:
-      return icons.card;
     case Input.Url:
       return icons.url;
     case Input.FastSearch:

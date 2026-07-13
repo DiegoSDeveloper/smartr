@@ -8,6 +8,9 @@ import {
   TextInput,
   TooltipPosition,
   ValueType,
+  LoadOptionsArgs,
+  LoadOptionsResult,
+  SmartOption,
 } from "../types";
 import { editorButtonPropTypes } from "../EditorButton/EditorButton";
 
@@ -101,6 +104,42 @@ export interface EditorPropType
     isSelected: boolean,
     searchText: string
   ) => React.ReactNode;
+
+  // --- Modo assíncrono (Input.Select com loadOptions, ou Input.FastSearch) ---
+  /**
+   * ATIVA o modo assíncrono do dropdown. A lib decide quando chamar
+   * (debounce, paginação, cancelamento); o consumidor decide como buscar.
+   */
+  loadOptions?: (args: LoadOptionsArgs) => Promise<LoadOptionsResult>;
+  /** Resolve o rótulo do valor já selecionado quando ele está fora das páginas carregadas. */
+  loadSelectedOption?: (
+    value: any,
+    signal: AbortSignal
+  ) => Promise<SmartOption | null>;
+  /** Alternativa a loadSelectedOption: item selecionado já resolvido pelo consumidor. */
+  selectedOption?: SmartOption | null;
+  pageSize?: number;
+  searchDebounceMs?: number;
+  minSearchLength?: number;
+  loadOnOpen?: boolean;
+  /**
+   * Invalida o cache por termo e recarrega (ex.: Date.now() depois de cadastrar
+   * um registro novo, para que ele apareça na busca).
+   */
+  reloadToken?: any;
+  /**
+   * Exibe a linha "nenhum selecionado". Default: `!optionsFirstSelected`.
+   * No modo assíncrono `optionsFirstSelected` NÃO auto-seleciona a primeira opção
+   * (isso escolheria um item arbitrário da página carregada) — use este prop para
+   * controlar a linha "nenhum" de forma explícita.
+   */
+  showNoneOption?: boolean;
+  onSearchChange?: (search: string) => void;
+  onOpen?: () => void;
+  renderEmpty?: (search: string) => React.ReactNode;
+  renderError?: (error: unknown, retry: () => void) => React.ReactNode;
+  renderLoading?: () => React.ReactNode;
+
   input?: TextInput;
   valueType?: ValueType;
   thousandsSeparator?: string;

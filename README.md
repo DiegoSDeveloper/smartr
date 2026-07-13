@@ -122,6 +122,110 @@ function ExampleForm() {
 />
 ```
 
+### Async Select — server-side search with incremental loading
+
+For large datasets, don't load the whole list upfront. Pass a `loadOptions` handler and the
+dropdown becomes **asynchronous**: it loads one page at a time (default 20), searches on the
+server as the user types (debounced), and loads more pages on scroll (infinite scroll,
+accumulating results).
+
+**The library never performs I/O.** It has no knowledge of URLs, headers, response formats or
+authentication — it only decides *when* to ask for data (debounce, page counter, request
+cancellation, caching, keyboard/ARIA, visual states). *How* to fetch is entirely up to the
+consumer, through handlers:
+
+```ts
+type SmartOption = { id: any; description: string; [k: string]: any };
+
+type LoadOptionsArgs = {
+  search: string;      // debounced search term
+  page: number;        // 1-based
+  pageSize: number;
+  signal: AbortSignal; // forward it to your fetch — the lib aborts superseded requests
+};
+
+type LoadOptionsResult = {
+  options: SmartOption[];
+  hasMore?: boolean;   // when omitted, inferred from options.length === pageSize
+  total?: number;      // optional, if you know it
+};
+```
+
+The backend lives in **your app**, not in the library:
+
+```tsx
+// Consumer (app) — the library never sees any of this:
+const buscarClientes = async ({ search, page, pageSize, signal }) => {
+  const url = `/api/v1/Customer/Filter?usePagination=true&page=${page}&pageSize=${pageSize}`
+            + (search ? `&name=${encodeURIComponent(search)}` : "");
+  const res = await fetch(url, { signal, headers: { Authorization: `Bearer ${token}` } });
+  const options = (await res.json()).map(c => ({ id: c.id, description: c.name }));
+  const total = Number(res.headers.get("X-Total-Count") ?? 0);
+  return { options, total };
+};
+
+const carregarClienteSelecionado = async (id, signal) => {
+  const res = await fetch(`/api/v1/Customer/${id}`, { signal, headers: { Authorization: `Bearer ${token}` } });
+  const c = await res.json();
+  return c ? { id: c.id, description: c.name } : null;
+};
+
+<Editor
+  id="customerId"
+  type={Input.Select}
+  loadOptions={buscarClientes}
+  loadSelectedOption={carregarClienteSelecionado}
+  pageSize={20}
+  formState={form}
+  dispatchFormState={setForm}
+/>
+```
+
+**Editing existing records:** when the form opens with a value already set (e.g. an invoice's
+`customerId`), that item is usually not in the first page. The component resolves its label
+independently of pagination — either through `loadSelectedOption(value, signal)` or a
+pre-resolved `selectedOption={{ id, description }}` — and keeps it visible and selected even
+when the current search doesn't return it.
+
+**`Input.FastSearch`** uses the same engine with autocomplete defaults — it only searches after
+the user types (`minSearchLength: 1`, `loadOnOpen: false`):
+
+```tsx
+<Editor
+  id="customerId"
+  type={Input.FastSearch}
+  loadOptions={buscarClientes}
+  loadSelectedOption={carregarClienteSelecionado}
+  formState={form}
+  dispatchFormState={setForm}
+/>
+```
+
+Without `loadOptions`, `Input.FastSearch` keeps its previous behavior (plain text input) and
+`Input.Select` with in-memory `options` keeps filtering locally — no breaking changes.
+
+| Prop                 | Type                                                     | Default                          | Notes                                                          |
+| -------------------- | -------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------- |
+| `loadOptions`        | `(args: LoadOptionsArgs) => Promise<LoadOptionsResult>`  | —                                | **Enables async mode.** The lib calls it; you fetch.           |
+| `loadSelectedOption` | `(value, signal) => Promise<SmartOption \| null>`        | —                                | Resolves the selected value's label outside loaded pages.      |
+| `selectedOption`     | `SmartOption \| null`                                    | —                                | Alternative: hand over the already-resolved selected item.     |
+| `pageSize`           | `number`                                                 | `20` (config)                    | Items requested per page.                                      |
+| `searchDebounceMs`   | `number`                                                 | `300` (config)                   | Typing debounce before calling `loadOptions`.                  |
+| `minSearchLength`    | `number`                                                 | `0` (Select) / `1` (FastSearch)  | Minimum characters before searching.                           |
+| `loadOnOpen`         | `boolean`                                                | `true` (Select) / `false` (FastSearch) | Load page 1 when the dropdown opens.                    |
+| `onSearchChange`     | `(search: string) => void`                               | —                                | Escape hatch: observe raw (non-debounced) typing.              |
+| `onOpen`             | `() => void`                                             | —                                | Escape hatch: dropdown opened.                                 |
+| `optionRenderer`     | `(option, isSelected, search) => ReactNode`              | —                                | Custom option rendering (same prop as the sync Select).        |
+| `renderEmpty`        | `(search) => ReactNode`                                  | config text                      | Custom empty state.                                            |
+| `renderError`        | `(error, retry) => ReactNode`                            | config text + retry link         | Custom error state.                                            |
+| `renderLoading`      | `() => ReactNode`                                        | config text                      | Custom loading state.                                          |
+
+Defaults live in `config.behavior.select` (`pageSize`, `searchDebounceMs`, `minSearchLength`,
+`loadOnOpen`, `fastSearchMinSearchLength`, `fastSearchLoadOnOpen`) and texts/classes in
+`config.components.select.texts` / `.classes` (`loadingText`, `loadingMoreText`, `noResultsText`,
+`loadErrorText`, `retryText`, `minSearchText`, `optionActive`, `optionsMessage`, `optionsError`,
+`optionsRetry`, `optionsSentinel`) — all overridable via `configManager`.
+
 ### Table — Advanced data display
 
 ```tsx
@@ -222,8 +326,7 @@ The `Input` enum is the single switch for the `Editor` component. Each value map
 | `Input.LongText`  | `<textarea>`                        | `rows` prop controls height                                        |
 | `Input.Password`  | `<input type="password">`           | `enableShowPassword` toggles to `text`                             |
 | `Input.Email`     | `<input type="email">`              | Default email icon                                                 |
-| `Input.Search`    | `<input type="text">`               | Search-styled                                                      |
-| `Input.FastSearch`| `<input type="text">`               | Search variant with debounced trigger                              |
+| `Input.FastSearch`| async dropdown (or `<input type="text">`) | With `loadOptions`: server-side autocomplete (see Async Select). Without: plain text input |
 | `Input.Integer`   | `<input type="number">`             | Honors `min` / `max` as numeric bounds                              |
 | `Input.Decimal`   | `<input type="text">` (masked)      | Configurable thousands/decimal separators and decimal places       |
 | `Input.Money`     | `<input type="text">` (masked)      | Currency icon prepended                                            |
@@ -236,17 +339,15 @@ The `Input` enum is the single switch for the `Editor` component. Each value map
 | `Input.Phone`     | `<input type="tel">` + mask         | Default mask from config                                           |
 | `Input.Mobile`    | `<input type="tel">` + mask         | Same as Phone with mobile icon                                     |
 | `Input.Fax`       | `<input type="tel">` + mask         |                                                                    |
-| `Input.Card`      | `<input type="text">` + mask        | Credit-card style mask                                             |
 | `Input.Url`       | `<input type="url">`                | Default link icon                                                  |
 | `Input.Color`     | `<input type="color">`              | Native color picker, value as `#rrggbb`                            |
 | `Input.Range`     | `<input type="range">`              | Numeric `min` / `max` / `step` (allows `min=0`); value is `Float`  |
 | `Input.CheckBox`  | `<input type="checkbox">`           | Boolean value                                                      |
 | `Input.Radio`     | `<input type="radio">`              | Auto-generates `name` if not provided                              |
-| `Input.Select`    | `<select>` (or filterable Select)   | Supports grouping, multi-select, custom renderer, search           |
+| `Input.Select`    | `<select>` (or filterable Select)   | Supports grouping, multi-select, custom renderer, search. With `loadOptions`: async server-side search (see Async Select) |
 | `Input.File`      | `<input type="file">`               | Multi-file, `accept`, `maxFileSize`, download/delete callbacks     |
 | `Input.Hidden`    | `<input type="hidden">`             | Skips events; participates in form state                           |
-| `Input.Label`     | Read-only label                     | Renders the value as plain text                                    |
-| `Input.Html`      | Rich HTML editor                    | For long-form HTML content                                         |
+| `Input.Label`     | Read-only label                     | Renders the value as static text (`form-control-plaintext`), keeping title/layout |
 
 ### HTML input types — coverage notes
 
